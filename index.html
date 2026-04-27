@@ -1010,19 +1010,20 @@
     <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js" async></script>
 
     <script>
-        // ============== CONFIGURAÇÃO DINÂMICA DE API ==================
-        // Detectar automaticamente se está em localhost ou servidor remoto
+        // ============== CONFIGURAÇÃO DE API ==================
+        // Em produção: /extract.php (mesmo domínio)
+        // Em localhost: http://127.0.0.1:8001 (API Python direta)
         
         const API_BASE_URL = () => {
             const hostname = window.location.hostname;
             const protocol = window.location.protocol;
             
-            // Se localhost: usar porta 8001
+            // Localhost: usar API direta na porta 8001
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
                 return 'http://127.0.0.1:8001';
             }
             
-            // Se servidor remoto: usar mesmo domínio
+            // Produção: usar /extract.php (nginx reverse proxy)
             return `${protocol}//${hostname}`;
         };
         
