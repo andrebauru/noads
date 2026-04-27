@@ -11,21 +11,6 @@ import subprocess
 import re
 import os
 
-MOCK_VIDEOS = {
-    'jNQXAC9IVRw': {
-        'title': 'Me at the zoo',
-        'url': 'https://rr4---sn-3pm7dn7r.googlevideo.com/videoplayback?expire=1777121251'
-    },
-    'dQw4w9WgXcQ': {
-        'title': 'Rick Astley - Never Gonna Give You Up',
-        'url': 'https://rr3---sn-ntnt7nez.googlevideo.com/videoplayback?expire=1777121252'
-    },
-    '9bZkp7q19f0': {
-        'title': 'YouTube Rewind 2018',
-        'url': 'https://rr1---sn-npodn7ee.googlevideo.com/videoplayback?expire=1777121253'
-    }
-}
-
 CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache')
 os.makedirs(CACHE_DIR, exist_ok=True)
 
@@ -114,17 +99,6 @@ class ExtractHandler(BaseHTTPRequestHandler):
         cached = get_cached(video_id)
         if cached:
             self.wfile.write(json.dumps({'success': True, 'cached': True, 'data': cached}).encode())
-            return
-        
-        # Tentar mock
-        if video_id in MOCK_VIDEOS:
-            save_cache(video_id, MOCK_VIDEOS[video_id])
-            self.wfile.write(json.dumps({
-                'success': True,
-                'cached': False,
-                'mock': True,
-                'data': MOCK_VIDEOS[video_id]
-            }).encode())
             return
         
         # Tentar yt-dlp
