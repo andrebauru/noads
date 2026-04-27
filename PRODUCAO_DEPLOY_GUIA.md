@@ -9,7 +9,25 @@
 
 ---
 
-## 1️⃣ CLONAR E PREPARAR
+## ⚡ DEPLOY RÁPIDO (Uma linha!)
+
+Já tem o repositório clonado? Use este comando:
+
+```bash
+sudo /var/www/you.andretsc.dev/deploy.sh
+```
+
+**O que faz:**
+- ✅ Baixa atualizações do Git
+- ✅ Para o serviço
+- ✅ Atualiza dependências
+- ✅ Atualiza Nginx config
+- ✅ Reinicia serviço
+- ✅ Testa API
+
+---
+
+## 1️⃣ CLONAR E PREPARAR (Primeira vez)
 
 ```bash
 # SSH ao servidor
@@ -44,7 +62,35 @@ deactivate
 
 ---
 
-## 3️⃣ CONFIGURAR NGINX
+## 📥 USAR O DEPLOY.SH
+
+Após a primeira instalação, para atualizar o código:
+
+```bash
+# SSH ao servidor
+ssh user@you.andretsc.dev
+
+# Executar deploy (atualiza Git + reinicia)
+sudo /var/www/you.andretsc.dev/deploy.sh
+```
+
+**Funcionalidades do deploy.sh:**
+```
+1. Verifica permissões (precisa sudo)
+2. Para o serviço noads
+3. Faz git fetch + git reset (baixa atualizações)
+4. Mostra últimos commits
+5. Atualiza dependências Python
+6. Atualiza permissões de arquivo
+7. Recarrega config Nginx
+8. Reinicia serviço noads
+9. Testa API (curl)
+10. Mostra status final
+```
+
+---
+
+## 2️⃣ CONFIGURAR NGINX
 
 ```bash
 # Copiar configuração
@@ -63,7 +109,7 @@ sudo systemctl reload nginx
 
 ---
 
-## 4️⃣ CONFIGURAR SSL (Let's Encrypt)
+## 3️⃣ CONFIGURAR SSL (Let's Encrypt)
 
 ```bash
 # Instalar certbot
@@ -80,7 +126,7 @@ sudo systemctl start certbot.timer
 
 ---
 
-## 5️⃣ CRIAR SYSTEMD SERVICE
+## 4️⃣ CRIAR SYSTEMD SERVICE
 
 ```bash
 cat | sudo tee /etc/systemd/system/noads.service << 'EOF'
@@ -113,7 +159,7 @@ sudo systemctl status noads
 
 ---
 
-## 6️⃣ VERIFICAR FUNCIONAMENTO
+## 5️⃣ VERIFICAR FUNCIONAMENTO
 
 ```bash
 # 1. Status da API
@@ -131,7 +177,7 @@ curl -s "http://127.0.0.1:8001/extract.php?url=https://youtu.be/jNQXAC9IVRw" | j
 
 ---
 
-## 7️⃣ FIREWALL
+## 6️⃣ FIREWALL
 
 ```bash
 # UFW
@@ -146,7 +192,19 @@ sudo ufw status
 
 ---
 
-## 🔍 TROUBLESHOOTING
+## � CONFIGURAR DEPLOY.SH (primeira vez)
+
+```bash
+# Dar permissão de execução
+sudo chmod +x /var/www/you.andretsc.dev/deploy.sh
+
+# Testar
+sudo /var/www/you.andretsc.dev/deploy.sh
+```
+
+---
+
+## �🔍 TROUBLESHOOTING
 
 ### API não responde via Nginx
 ```bash
