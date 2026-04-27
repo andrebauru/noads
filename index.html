@@ -1129,41 +1129,48 @@
         // ✅ DESCOBERTA DE DISPOSITIVOS - Implementação Robusta
         function discoverDevices() {
             if (!window.chrome || !window.chrome.cast || !castReceiverAvailable) {
+                console.log('⚠️ Cast não disponível ou receiver não pronto');
                 return;
             }
             
             try {
-                // Tenta listar sessões disponíveis
-                chrome.cast.Session.setReceiverSelectorFunc((sessions) => {
-                    console.log(`📱 Encontrados ${sessions.length} dispositivos`);
-                    
-                    if (sessions && sessions.length > 0) {
-                        displayDevices(sessions);
-                    } else {
-                        showNoDevices();
-                    }
-                    
-                    // Retorna primeira sessão disponível ou null para escolha manual
-                    return sessions.length > 0 ? sessions[0] : null;
-                });
-                
-                // Tenta conectar a um receiver existente
+                // ✅ FORMA CORRETA: Usar requestSession com timeout
                 const sessionRequest = new chrome.cast.SessionRequest(
-                    chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
+                    chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    [chrome.cast.SESSION_TYPE_SUPPORT_VIDEO_OUT]
                 );
                 
+                // Tenta descobrir e conectar a receptores
                 chrome.cast.requestSession(
                     (session) => {
-                        console.log('✅ Sessão estabelecida:', session.displayName);
+                        console.log('✅ Sessão descoberta:', session.displayName || session.receiver.label);
                         onSessionEstablished(session);
+                        
+                        // Atualiza lista de dispositivos
+                        if (session.receiver) {
+                            displayDevices([session]);
+                        }
                     },
                     (error) => {
-                        console.log('ℹ️ Nenhuma sessão ativa (normal):', error);
+                        // Erro é normal quando não há devices/receptor selecionado
+                        if (error.code !== 'SESSION_ERROR') {
+                            console.log('ℹ️ Discovery timeout ou cancelado (normal)');
+                        } else {
+                            console.log('⚠️ Erro:', error.description);
+                        }
+                        showNoDevices();
+                    },
+                    { 
+                        customDialData: null,
+                        autoJoinPolicy: chrome.cast.AutoJoinPolicy.TAB_AND_ORIGIN_SCOPED
                     }
                 );
+                
+                console.log('🔍 Discovery iniciado...');
                 
             } catch(e) {
                 console.error('❌ Erro em discovery:', e);
+                setTimeout(() => startDeviceDiscovery(), 2000);
             }
         }
 
