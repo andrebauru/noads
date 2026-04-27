@@ -1557,16 +1557,27 @@
 
             player.onloadedmetadata = () => updateDurationInfo();
             
-            // ✅ EVENT LISTENER: Autoplay - reproduz próximo vídeo se houver
+            // ✅ EVENT LISTENER: Loop/Autoplay com lógica inteligente
             player.addEventListener('ended', function onVideoEnded() {
                 console.log('🎬 Vídeo terminou');
+                
                 if (isPlaylistMode && currentPlaylistIndex < currentPlaylist.length - 1) {
+                    // Modo Playlist: vai para próximo vídeo
                     console.log('➡️ Reproduzindo próximo vídeo da playlist...');
                     playNextVideo();
+                } else if (!isPlaylistMode) {
+                    // Modo Vídeo Único: LOOP infinito
+                    console.log('🔄 Iniciando loop - reiniciando vídeo único...');
+                    player.currentTime = 0;
+                    player.play().catch(err => {
+                        console.warn('⚠️ Autoplay bloqueado pelo navegador:', err.message);
+                        // Fallback: não há muito o que fazer se navegador bloqueia
+                    });
                 } else {
-                    console.log('✅ Fim da fila ou vídeo único - reprodução finalizada');
+                    // Fim da playlist
+                    console.log('✅ Fim da fila - reprodução parada');
                 }
-            }, { once: false }); // false = listener persiste
+            }, { once: false }); // false = listener persiste para loops infinitos
             
             player.load();
             player.play().catch(err => console.error('Play error:', err));
