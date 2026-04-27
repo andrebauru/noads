@@ -228,7 +228,7 @@ Type=simple
 User=$SERVICE_USER
 Group=$SERVICE_GROUP
 WorkingDirectory=$PROJECT_DIR
-ExecStart=$VENV_DIR/bin/python3 $PROJECT_DIR/simple_api.py
+ExecStart=$VENV_DIR/bin/python3 $PROJECT_DIR/api.py
 
 Restart=always
 RestartSec=10

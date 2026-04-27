@@ -11,7 +11,7 @@ Group=seu_usuario
 WorkingDirectory=/home/seu_usuario/noads
 
 # Caminho do executável Python
-ExecStart=/home/seu_usuario/noads/venv/bin/python3 /home/seu_usuario/noads/simple_api.py
+ExecStart=/home/seu_usuario/noads/venv/bin/python3 /home/seu_usuario/noads/api.py
 
 # Configurações de restart
 Restart=always

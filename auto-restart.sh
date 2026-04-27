@@ -65,7 +65,7 @@ start_services() {
     info "🚀 INICIANDO SERVIÇOS..."
     
     # Matar processos antigos
-    pkill -f "python.*simple_api.py" || true
+    pkill -f "python.*api.py" || true
     sleep 2
     
     # Iniciar Python API
@@ -74,9 +74,9 @@ start_services() {
     
     if [ -f "$VENV_DIR/bin/activate" ]; then
         source "$VENV_DIR/bin/activate"
-        nohup python3 simple_api.py > "$PROJECT_DIR/api.log" 2>&1 &
+        nohup python3 api.py > "$PROJECT_DIR/api.log" 2>&1 &
     else
-        nohup python3 simple_api.py > "$PROJECT_DIR/api.log" 2>&1 &
+        nohup python3 api.py > "$PROJECT_DIR/api.log" 2>&1 &
     fi
     
     local pid=$!
@@ -137,7 +137,7 @@ info "Pressione CTRL+C para parar"
 echo ""
 
 # Trap para cleanup
-trap 'log "⏹️  Monitoramento interrompido"; pkill -f "python.*simple_api.py" || true; exit 0' SIGINT SIGTERM
+trap 'log "⏹️  Monitoramento interrompido"; pkill -f "python.*api.py" || true; exit 0' SIGINT SIGTERM
 
 while true; do
     # Verificar saúde da API

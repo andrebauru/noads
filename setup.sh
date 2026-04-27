@@ -86,7 +86,7 @@ cat > "$PROJECT_DIR/run.sh" << 'RUNEOF'
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$SCRIPT_DIR/venv/bin/activate"
-python3 "$SCRIPT_DIR/simple_api.py"
+python3 "$SCRIPT_DIR/api.py"
 RUNEOF
 
 chmod +x "$PROJECT_DIR/run.sh"
