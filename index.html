@@ -1526,7 +1526,7 @@
                     const hostname = window.location.hostname;
                     
                     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-                        errorMsg = '🌐 Servidor não responde - Verifique se Python está rodando em localhost:8001';
+                        errorMsg = '🌐 Servidor não responde - Verifique se a API Python está rodando em http://127.0.0.1:8001';
                     } else {
                         errorMsg = `🌐 Erro de conexão com API (${apiUrl})`;
                     }
@@ -1542,6 +1542,7 @@
 
             currentVideoUrl = data.data.url;
             currentVideoTitle = data.data.title;
+            isPlaylistMode = false; // Indicar que é vídeo único
 
             player.pause();
             player.innerHTML = '';
@@ -1555,6 +1556,18 @@
             document.getElementById('playlistCard').classList.remove('active');
 
             player.onloadedmetadata = () => updateDurationInfo();
+            
+            // ✅ EVENT LISTENER: Autoplay - reproduz próximo vídeo se houver
+            player.addEventListener('ended', function onVideoEnded() {
+                console.log('🎬 Vídeo terminou');
+                if (isPlaylistMode && currentPlaylistIndex < currentPlaylist.length - 1) {
+                    console.log('➡️ Reproduzindo próximo vídeo da playlist...');
+                    playNextVideo();
+                } else {
+                    console.log('✅ Fim da fila ou vídeo único - reprodução finalizada');
+                }
+            }, { once: false }); // false = listener persiste
+            
             player.load();
             player.play().catch(err => console.error('Play error:', err));
 
@@ -1601,7 +1614,7 @@
             const video = currentPlaylist[index];
 
             try {
-                const response = await fetch(`http://localhost:8001/extract.php?url=${encodeURIComponent(video.url)}`);
+                const response = await fetch(`${API_BASE_URL()}/extract.php?url=${encodeURIComponent(video.url)}`);
                 const data = await response.json();
 
                 if (data.success && data.data?.url) {
@@ -1679,7 +1692,7 @@
 
             showStatus('💾 Iniciando download do MP4...', 'loading');
 
-            fetch('http://localhost:8001/download', {
+            fetch(`${API_BASE_URL()}/download`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1711,8 +1724,8 @@
             })
             .catch(err => {
                 console.error('Download error:', err);
-                const errorMsg = err.message.includes('localhost:8001') 
-                    ? '🌐 Servidor de download não está rodando'
+                const errorMsg = err.message.includes('Failed to fetch') || err.message.includes('ERR_CONNECTION_REFUSED')
+                    ? '🌐 Servidor de download não está acessível'
                     : `❌ Erro no download: ${err.message}`;
                 showStatus(errorMsg, 'error');
             });
@@ -1726,7 +1739,7 @@
 
             showStatus('🎵 Convertendo para MP3 (pode levar 1-2 min)...', 'loading');
 
-            fetch('http://localhost:8001/download', {
+            fetch(`${API_BASE_URL()}/download`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1758,8 +1771,8 @@
             })
             .catch(err => {
                 console.error('MP3 error:', err);
-                const errorMsg = err.message.includes('localhost:8001')
-                    ? '🌐 Servidor de conversão não está rodando'
+                const errorMsg = err.message.includes('Failed to fetch') || err.message.includes('ERR_CONNECTION_REFUSED')
+                    ? '🌐 Servidor de conversão não está acessível'
                     : `❌ Erro na conversão: ${err.message}`;
                 showStatus(errorMsg, 'error');
             });
