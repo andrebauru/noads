@@ -1010,6 +1010,23 @@
     <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js" async></script>
 
     <script>
+        // ============== CONFIGURAÇÃO DINÂMICA DE API ==================
+        // Detectar automaticamente se está em localhost ou servidor remoto
+        
+        const API_BASE_URL = () => {
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            
+            // Se localhost: usar porta 8001
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://127.0.0.1:8001';
+            }
+            
+            // Se servidor remoto: usar mesmo domínio
+            return `${protocol}//${hostname}`;
+        };
+        
+        console.log('🔗 API Base URL:', API_BASE_URL());
         // ============== CHROMECAST ROBUSTO - MODO DAN 🔥 ==================
         // Solução SUPER ROBUSTA baseada em implementações funcionais
         
@@ -1464,7 +1481,9 @@
             showStatus('🔄 Carregando...', 'loading');
 
             try {
-                const response = await fetch(`http://localhost:8001/extract.php?url=${encodeURIComponent(url)}`);
+                const apiUrl = `${API_BASE_URL()}/extract.php?url=${encodeURIComponent(url)}`;
+                console.log('📤 Chamando API:', apiUrl);
+                const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
                     throw new Error(`Servidor retornou ${response.status}`);
@@ -1499,11 +1518,19 @@
                 console.error('Erro ao carregar vídeo:', err);
                 
                 // Mapear erros de rede
-                const errorMap = {
-                    'TypeError': '🌐 Servidor não responde - Verifique se está rodando em localhost:8001',
-                    'SyntaxError': '🔀 Resposta inválida do servidor',
-                };
-                const errorMsg = errorMap[err.constructor.name] || `❌ Erro: ${err.message}`;
+                let errorMsg = `❌ Erro: ${err.message}`;
+                
+                if (err.message.includes('fetch') || err.constructor.name === 'TypeError') {
+                    const apiUrl = API_BASE_URL();
+                    const hostname = window.location.hostname;
+                    
+                    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                        errorMsg = '🌐 Servidor não responde - Verifique se Python está rodando em localhost:8001';
+                    } else {
+                        errorMsg = `🌐 Erro de conexão com API (${apiUrl})`;
+                    }
+                }
+                
                 showStatus(errorMsg, 'error');
             }
         }

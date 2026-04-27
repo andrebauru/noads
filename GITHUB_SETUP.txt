@@ -1,0 +1,225 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                   🚀 CRIAR REPOSITÓRIO NO GITHUB                          ║
+║                  Instruções para Noads (Repositório Público)              ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📋 INSTRUÇÕES PASSO A PASSO
+═════════════════════════════════════════════════════════════════════════════
+
+PASSO 1: CRIAR REPOSITÓRIO NO GITHUB
+────────────────────────────────────────────────────────────────────────────
+
+1. Acesse: https://github.com/new
+2. Preencha com:
+   
+   Repository name: Noads
+   
+   Description: YouTube without Ads + Chromecast with Auto-Discovery
+   
+   Visibility: PUBLIC
+   
+   ☐ Initialize with README (NÃO selecionar - já temos)
+   ☐ Add .gitignore (NÃO selecionar - já temos)
+   ☐ Choose a license (NÃO selecionar - já temos)
+
+3. Clique "Create repository"
+
+═════════════════════════════════════════════════════════════════════════════
+
+PASSO 2: EXECUTAR COMANDOS GIT
+────────────────────────────────────────────────────────────────────────────
+
+Copie e execute estes comandos no PowerShell:
+
+```powershell
+cd d:\Programacao\Noads
+
+# Adicionar remote (substitua SEU_USUARIO)
+git remote add origin https://github.com/SEU_USUARIO/Noads.git
+
+# Renomear branch (se necessário)
+git branch -M main
+
+# Push inicial
+git push -u origin main
+```
+
+EXEMPLO COM USUÁRIO REAL:
+```powershell
+cd d:\Programacao\Noads
+git remote add origin https://github.com/joao123/Noads.git
+git branch -M main
+git push -u origin main
+```
+
+═════════════════════════════════════════════════════════════════════════════
+
+PASSO 3: AUTENTICAR COM GITHUB
+────────────────────────────────────────────────────────────────────────────
+
+Se pedir senha/autenticação:
+
+OPÇÃO A: GitHub CLI (Recomendado)
+──────────────────────────────────
+```powershell
+# Se tiver gh instalado:
+gh auth login
+# Siga as instruções
+```
+
+OPÇÃO B: Token de Acesso Pessoal
+──────────────────────────────────
+1. Acesse: https://github.com/settings/tokens
+2. Clique "Generate new token"
+3. Selecione "repo" (full control of private repositories)
+4. Clique "Generate token"
+5. COPIE o token (será visível apenas uma vez)
+6. Use o token como senha ao fazer push:
+
+```powershell
+git push -u origin main
+# Usuário: seu_usuario_github
+# Senha: cole_o_token_aqui
+```
+
+═════════════════════════════════════════════════════════════════════════════
+
+PASSO 4: ADICIONAR DESCRIPTION E KEYWORDS NO GITHUB
+────────────────────────────────────────────────────────────────────────────
+
+Após o push, vá para: https://github.com/SEU_USUARIO/Noads
+
+1. Clique no ícone de engrenagem (Settings)
+   - Ou vá em: Settings → General
+
+2. Desça até "About"
+
+3. Adicione:
+   
+   Description:
+   "YouTube player without ads + Chromecast with automatic device discovery"
+   
+   Website (opcional):
+   https://seu-website.com
+   
+   Topics (Keywords):
+   youtube
+   chromecast
+   noads
+   adblock
+   video-player
+   streaming
+   cast
+   python
+   php
+   javascript
+
+4. Clique "Save changes"
+
+═════════════════════════════════════════════════════════════════════════════
+
+PASSO 5: PERSONALIZAR GITHUB (OPCIONAL)
+────────────────────────────────────────────────────────────────────────────
+
+📌 ADICIONAR BADGE NO README
+
+Edite o README.md no GitHub:
+1. Clique no arquivo README.md
+2. Clique no ícone de edição (✏️)
+3. Adicione antes da description:
+
+```markdown
+[![GitHub stars](https://img.shields.io/github/stars/SEU_USUARIO/Noads?style=social)](https://github.com/SEU_USUARIO/Noads)
+[![GitHub forks](https://img.shields.io/github/forks/SEU_USUARIO/Noads?style=social)](https://github.com/SEU_USUARIO/Noads/fork)
+```
+
+4. Clique "Commit changes"
+
+═════════════════════════════════════════════════════════════════════════════
+
+✅ VERIFICAÇÃO FINAL
+────────────────────────────────────────────────────────────────────────────
+
+Após completar tudo, verifique:
+
+[  ] Repositório criado e público
+[  ] Todos os arquivos no GitHub
+[  ] Description e keywords adicionadas
+[  ] README.md renderizando corretamente
+[  ] Badges exibindo
+[  ] Commits visíveis no history
+[  ] License em MIT License
+
+═════════════════════════════════════════════════════════════════════════════
+
+🔗 SEU LINK SERÁ:
+───────────────────────────────────────────────────────────────────────────
+
+https://github.com/SEU_USUARIO/Noads
+
+COMPARTILHE:
+- Código: https://github.com/SEU_USUARIO/Noads
+- Issues: https://github.com/SEU_USUARIO/Noads/issues
+- Discussions: https://github.com/SEU_USUARIO/Noads/discussions
+
+═════════════════════════════════════════════════════════════════════════════
+
+💡 PRÓXIMOS PASSOS
+─────────────────────────────────────────────────────────────────────────
+
+1. Compartilhe nas redes:
+   - Twitter: "Check out Noads - YouTube without Ads + Chromecast 🎬"
+   - LinkedIn: Compartilhe como projeto open-source
+   - Reddit: r/OpenSource, r/Python, etc
+
+2. Procure contribuidores
+   - Adicione CONTRIBUTING.md (já existe)
+   - Abra issues como "good first issue"
+   - Convide amigos para contribuir
+
+3. Promova
+   - ProductHunt: https://www.producthunt.com
+   - HackerNews: https://news.ycombinator.com
+   - Awesome Lists: Procure "awesome github"
+
+4. Mantenha atualizado
+   - Responda issues
+   - Revise PRs
+   - Faça releases
+
+═════════════════════════════════════════════════════════════════════════════
+
+❓ DÚVIDAS COMUNS
+────────────────────────────────────────────────────────────────────────────
+
+P: Como adicionar mais branches?
+R: git checkout -b nome-branch
+
+P: Como fazer novo commit?
+R: git add . && git commit -m "Descrição" && git push
+
+P: Como adicionar colaboradores?
+R: Settings → Collaborators → Add people
+
+P: Como fazer Release?
+R: GitHub → Releases → Create a new release
+
+P: Fazer repositório privado depois?
+R: Settings → Danger zone → Change repository visibility
+
+═════════════════════════════════════════════════════════════════════════════
+
+📝 NOTA IMPORTANTE
+────────────────────────────────────────────────────────────────────────────
+
+O repositório local já foi inicializado e commitado em:
+D:\Programacao\Noads
+
+Você só precisa:
+1. Criar no GitHub
+2. Adicionar o remote
+3. Fazer push
+
+Tudo está pronto! 🚀
+
+═════════════════════════════════════════════════════════════════════════════
