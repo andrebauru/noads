@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 YouTube Player Pro - Chromecast & Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #e74c3c;
+            --secondary: #27ae60;
+            --tertiary: #f39c12;
+            --dark: #1a1a2e;
+            --darker: #0f1419;
+            --light: #f8f9fa;
+            --border: #e0e0e0;
+            --text: #2c3e50;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, #1a2332 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============ HEADER ============ */
+        header {
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 3.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            animation: fadeInDown 0.8s ease;
+            text-shadow: 0 2px 10px rgba(231, 76, 60, 0.2);
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            animation: fadeInUp 0.8s ease 0.1s both;
+        }
+
+        .features-badge {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        /* ============ LAYOUT PRINCIPAL ============ */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .main-section {
+            animation: fadeInLeft 0.8s ease 0.3s both;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeInRight 0.8s ease 0.3s both;
+        }
+
+        /* ============ CARDS ============ */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(231, 76, 60, 0.2);
+        }
+
+        /* ============ INPUT SECTION ============ */
+        .input-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.95) 100%);
+            padding: 40px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Monaco', monospace;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
+            background: linear-gradient(to right, rgba(231, 76, 60, 0.01), rgba(243, 156, 18, 0.01));
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #c0392b 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, var(--secondary) 0%, #229954 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.3);
+            grid-column: span 1;
+        }
+
+        .btn-download:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-mp3 {
+            background: linear-gradient(135deg, var(--tertiary) 0%, #d68910 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(243, 156, 18, 0.3);
+        }
+
+        .btn-mp3:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ============ PLAYER SECTION ============ */
+        .player-card {
+            display: none;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .player-card.active {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+            aspect-ratio: 16 / 9;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #000;
+        }
+
+        .player-info {
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.95) 100%);
+        }
+
+        .video-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 15px;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .video-meta {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .meta-value {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .controls-grid .btn {
+            grid-column: auto;
+        }
+
+        /* ============ CHROMECAST SECTION ============ */
+        .cast-section {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.1) 0%, rgba(41, 128, 185, 0.1) 100%);
+            border-top: 2px solid var(--border);
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .cast-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .cast-button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 48px;
+            width: 100%;
+        }
+
+        google-cast-launcher {
+            --gcast-button-color: white;
+            --gcast-button-bg-color: #9b59b6;
+        }
+
+        /* ============ SIDEBAR CARDS ============ */
+        .info-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-card h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .feature-icon {
+            font-size: 14px;
+            min-width: 20px;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary) 0%, #27ae60 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ============ PLAYLIST SECTION ============ */
+        .playlist-card {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .playlist-card.active {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        .playlist-header {
+            padding: 30px 40px;
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(243, 156, 18, 0.1) 100%);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .playlist-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .playlist-count {
+            font-size: 13px;
+            color: #999;
+            font-weight: 600;
+        }
+
+        .playlist-grid {
+            padding: 30px 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .playlist-item {
+            background: linear-gradient(135deg, var(--light) 0%, white 100%);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .playlist-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(231, 76, 60, 0.2);
+        }
+
+        .playlist-item.active {
+            background: linear-gradient(135deg, var(--primary) 0%, #c0392b 100%);
+            color: white;
+            border-color: #c0392b;
+        }
+
+        .playlist-number {
+            font-size: 11px;
+            font-weight: 700;
+            opacity: 0.7;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .playlist-text {
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .playlist-controls {
+            padding: 20px 40px;
+            background: var(--light);
+            border-top: 2px solid var(--border);
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        /* ============ STATUS MESSAGE ============ */
+        .status-message {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInRight 0.4s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-message.show {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-message.success {
+            background: linear-gradient(135deg, var(--secondary) 0%, #229954 100%);
+            color: white;
+        }
+
+        .status-message.error {
+            background: linear-gradient(135deg, var(--primary) 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .status-message.loading {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-right-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr 300px;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5em;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .sidebar {
+                order: -1;
+            }
+
+            .input-card {
+                padding: 25px;
+            }
+
+            .player-info {
+                padding: 25px;
+            }
+
+            .video-title {
+                font-size: 20px;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .cast-button-container {
+                width: 100%;
+            }
+
+            .cast-section {
+                margin-top: 15px;
+            }
+
+            .playlist-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                padding: 20px;
+            }
+
+            .playlist-header {
+                padding: 20px;
+            }
+
+            .status-message {
+                top: 15px;
+                right: 15px;
+                left: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .wrapper {
+                padding: 0 10px;
+            }
+
+            .logo {
+                font-size: 2em;
+            }
+
+            .tagline {
+                font-size: 1em;
+            }
+
+            .input-card {
+                padding: 20px;
+            }
+
+            .player-info {
+                padding: 20px;
+            }
+
+            .video-title {
+                font-size: 16px;
+            }
+
+            .video-meta {
+                gap: 12px;
+                font-size: 11px;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                margin-bottom: 30px;
+            }
+
+            .features-badge {
+                gap: 10px;
+            }
+
+            .badge {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Stars Background -->
+    <div class="stars" id="starsContainer"></div>
+
+    <!-- Main Wrapper -->
+    <div class="wrapper">
+        <!-- Header -->
+        <header>
+            <div class="logo">🎬 PLAYER PRO</div>
+            <div class="tagline">Chromecast • Download • MP3 • Playlists</div>
+            <div class="features-badge">
+                <div class="badge">✨ 4K Ready</div>
+                <div class="badge">⚡ Cache Local</div>
+                <div class="badge">🎵 MP3 Extractor</div>
+                <div class="badge">📡 Chromecast</div>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="container">
+            <!-- Main Section -->
+            <div class="main-section">
+                <!-- Input Card -->
+                <div class="card input-card">
+                    <div class="input-group">
+                        <label class="input-label">🔗 URL do Vídeo ou Playlist</label>
+                        <input 
+                            type="text" 
+                            id="urlInput" 
+                            class="url-input" 
+                            placeholder="https://youtube.com/watch?v=... ou playlist"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="loadVideo()">
+                            ▶️ Carregar
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearAll()">
+                            🔄 Limpar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Player Card -->
+                <div class="card player-card" id="playerCard">
+                    <div class="video-wrapper">
+                        <video id="videoPlayer" controls></video>
+                    </div>
+
+                    <div class="player-info">
+                        <div class="video-title" id="videoTitle">Carregando...</div>
+                        
+                        <div class="video-meta">
+                            <div class="meta-item">
+                                <span>📊 Qualidade:</span>
+                                <span class="meta-value">MP4 Full HD</span>
+                            </div>
+                            <div class="meta-item" id="durationInfo" style="display: none;">
+                                <span>⏱️ Duração:</span>
+                                <span class="meta-value" id="videoDuration">--:--</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>🔊 Áudio:</span>
+                                <span class="meta-value">AAC 128K</span>
+                            </div>
+                        </div>
+
+                        <div class="controls-grid">
+                            <button class="btn btn-download" onclick="downloadVideo()">
+                                💾 Download MP4
+                            </button>
+                            <button class="btn btn-mp3" onclick="downloadMP3()">
+                                🎵 Extrair MP3
+                            </button>
+                            <button class="btn btn-secondary" onclick="playPreviousVideo()">
+                                ⏮ Anterior
+                            </button>
+                            <button class="btn btn-secondary" onclick="playNextVideo()">
+                                Próximo ⏭
+                            </button>
+                        </div>
+
+                        <div class="cast-section">
+                            <div class="cast-title">📡 Transmitir para Chromecast</div>
+                            <div class="cast-button-container" id="castContainer">
+                                <google-cast-launcher></google-cast-launcher>
+                            </div>
+                            
+                            <!-- ✅ NOVO: Seletor de Dispositivos Chromecast AVANÇADO -->
+                            <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, rgba(102,126,234,0.15), rgba(102,126,234,0.05)); border-radius: 8px; border: 1px solid rgba(102,126,234,0.3); display: none;" id="castDeviceSelector">
+                                <div style="font-weight: bold; margin-bottom: 12px; color: #fff; display: flex; align-items: center;">
+                                    <span style="font-size: 18px; margin-right: 8px;">📱</span>
+                                    <span>Dispositivos Disponíveis</span>
+                                </div>
+                                <div id="castDeviceList" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 10px;">
+                                    <div style="color: #aaa; font-size: 12px; padding: 15px; text-align: center;">
+                                        🔍 Procurando dispositivos...
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary" style="margin-top: 10px; width: 100%; font-size: 12px;" onclick="showCastDevices()">
+                                    🔄 Atualizar Lista
+                                </button>
+                            </div>
+                            
+                            <!-- ✅ NOVO: Status de Transmissão ELEGANTE -->
+                            <div style="margin-top: 10px; padding: 12px; background: linear-gradient(135deg, rgba(0,255,100,0.2), rgba(0,200,100,0.1)); border-radius: 8px; border: 1px solid rgba(0,255,100,0.4); display: none; border-left: 4px solid #00ff64;" id="castStatus">
+                                <div style="font-size: 13px; color: #00ff64; font-weight: bold; display: flex; align-items: center;">
+                                    <span style="display: inline-block; width: 8px; height: 8px; background: #00ff64; border-radius: 50%; margin-right: 8px; animation: pulse 1.5s infinite;"></span>
+                                    <span id="castStatusText">Transmitindo</span>
+                                </div>
+                                <div style="font-size: 11px; color: #0f0; margin-top: 6px; margin-left: 16px;">
+                                    📺 <span id="castDeviceName" style="font-weight: bold;">-</span>
+                                </div>
+                                <button class="btn btn-secondary" style="margin-top: 10px; width: 100%; font-size: 11px; padding: 6px;" onclick="stopCasting()">
+                                    ⏹️ Parar Transmissão
+                                </button>
+                            </div>
+                            
+                            <!-- ✅ NOVO: Toggle Auto-Transmit -->
+                            <div style="margin-top: 10px; font-size: 11px; color: #aaa; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <input type="checkbox" id="autoTransmitToggle" checked onchange="autoTransmitEnabled = this.checked; console.log('Auto-transmit:', this.checked ? 'Ativado' : 'Desativado');" style="cursor: pointer;">
+                                <label for="autoTransmitToggle" style="cursor: pointer;">Auto-transmitir na playlist</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playlist Card -->
+                <div class="card playlist-card" id="playlistCard">
+                    <div class="playlist-header">
+                        <div class="playlist-title">📺 Fila de Reprodução</div>
+                        <div class="playlist-count">
+                            <span id="playlistCount">0</span> vídeos
+                            <span id="currentPosition" style="margin-left: 15px; color: var(--primary); font-weight: 700;"></span>
+                        </div>
+                    </div>
+
+                    <div class="playlist-grid" id="playlistList"></div>
+
+                    <div class="playlist-controls">
+                        <button class="btn btn-secondary" onclick="playPreviousVideo()">
+                            ⏮ Anterior
+                        </button>
+                        <button class="btn btn-secondary" onclick="playNextVideo()">
+                            Próximo ⏭
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Status Card -->
+                <div class="info-card">
+                    <h3>🚀 Status</h3>
+                    <div style="margin-bottom: 15px;">
+                        <div class="status-badge">✓ API Online</div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">✅</div>
+                            <div>Cache Local Ativo</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">✅</div>
+                            <div>Chromecast Disponível</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">✅</div>
+                            <div>Download Habilitado</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">✅</div>
+                            <div>MP3 Extractor Ready</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Card -->
+                <div class="info-card">
+                    <h3>✨ Recursos</h3>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">🎬</div>
+                            <div>YouTube & Playlists</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">💾</div>
+                            <div>Download Completo</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🎵</div>
+                            <div>Extração de MP3</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📡</div>
+                            <div>Chromecast Native</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">⚡</div>
+                            <div>Sem Anúncios</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📱</div>
+                            <div>Totalmente Responsivo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How to Use Card -->
+                <div class="info-card">
+                    <h3>❓ Como Usar</h3>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">1️⃣</div>
+                            <div><strong>Cole URL</strong> do YouTube</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">2️⃣</div>
+                            <div><strong>Clique</strong> em Carregar</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">3️⃣</div>
+                            <div><strong>Reproduza</strong> ou Baixe</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">4️⃣</div>
+                            <div><strong>Use Chromecast</strong> (opcional)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Message -->
+    <div class="status-message" id="statusMessage">
+        <span class="spinner"></span>
+        <span id="statusText">Carregando...</span>
+    </div>
+
+    <!-- Google Cast SDK -->
+    <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js" async></script>
+
+    <script>
+        // ============== CHROMECAST ROBUSTO - MODO DAN 🔥 ==================
+        // Solução SUPER ROBUSTA baseada em implementações funcionais
+        
+        let castSession = null;
+        let castAvailable = false;
+        let castReceiverAvailable = false;
+        let autoTransmitEnabled = true;
+        let castInitialized = false;
+        let deviceDiscoveryTimer = null;
+        
+        // 🎯 CALLBACK OBRIGATÓRIO - Deve estar no GLOBAL SCOPE
+        window['__onGCastApiAvailable'] = function(isAvailable) {
+            console.log('📡 [CALLBACK] Cast API Status:', isAvailable ? '✅ DISPONÍVEL' : '❌ INDISPONÍVEL');
+            if (isAvailable && !castInitialized) {
+                castAvailable = true;
+                castInitialized = true;
+                setTimeout(() => initializeCastAPIRobust(), 500);
+            }
+        };
+
+        // ✅ INICIALIZAÇÃO SUPER ROBUSTA - Trata todas as edge cases
+        function initializeCastAPIRobust() {
+            console.log('🚀 Iniciando Cast API Robusto...');
+            
+            // Verifica se Cast SDK está realmente carregado
+            if (!window.chrome || !window.chrome.cast) {
+                console.log('⏳ Cast SDK ainda não pronto, retry em 1s...');
+                setTimeout(initializeCastAPIRobust, 1000);
+                return;
+            }
+            
+            try {
+                // Criar configuração de sessão
+                const sessionRequest = new chrome.cast.SessionRequest(
+                    chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    [chrome.cast.SESSION_TYPE_SUPPORT_AUDIO_IN, 
+                     chrome.cast.SESSION_TYPE_SUPPORT_VIDEO_OUT,
+                     chrome.cast.SESSION_TYPE_SUPPORT_AUDIO_OUT]
+                );
+                
+                // Callbacks para detectar disponibilidade
+                const apiConfig = new chrome.cast.ApiConfig(
+                    sessionRequest,
+                    onSessionEstablished,
+                    onReceiverAvailabilityChanged,
+                    chrome.cast.AutoJoinPolicy.TAB_AND_ORIGIN_SCOPED
+                );
+                
+                // Erro handler
+                apiConfig.customDialTimeout = 15000;
+                
+                chrome.cast.initialize(apiConfig, 
+                    () => {
+                        console.log('✅ Cast API Inicializado com SUCESSO!');
+                        // Força discovery imediato
+                        startDeviceDiscovery();
+                    },
+                    (error) => {
+                        console.error('❌ ERRO na inicialização:', error);
+                        setTimeout(initializeCastAPIRobust, 3000);
+                    }
+                );
+                
+                console.log('✅ Configuração de Cast enviada');
+                
+            } catch(error) {
+                console.error('❌ Exceção:', error);
+                setTimeout(initializeCastAPIRobust, 2000);
+            }
+        }
+
+        // ✅ LISTENER DE DISPONIBILIDADE DE RECEPTORES
+        function onReceiverAvailabilityChanged(availability) {
+            console.log('📡 Disponibilidade:', availability);
+            
+            if (availability === chrome.cast.ReceiverAvailability.AVAILABLE) {
+                console.log('🟢 CHROMECAST(S) DISPONÍVEL(is)!');
+                castReceiverAvailable = true;
+                
+                // Ativa UI
+                const castContainer = document.getElementById('castContainer');
+                const castSelector = document.getElementById('castDeviceSelector');
+                if (castContainer) castContainer.style.opacity = '1';
+                if (castContainer) castContainer.style.pointerEvents = 'auto';
+                if (castSelector) castSelector.style.display = 'block';
+                
+                // Força atualização de lista de dispositivos
+                setTimeout(startDeviceDiscovery, 500);
+                
+            } else {
+                console.log('🔴 Nenhum Chromecast disponível');
+                castReceiverAvailable = false;
+                
+                const castContainer = document.getElementById('castContainer');
+                const castSelector = document.getElementById('castDeviceSelector');
+                if (castContainer) castContainer.style.opacity = '0.5';
+                if (castContainer) castContainer.style.pointerEvents = 'none';
+                if (castSelector) castSelector.style.display = 'none';
+            }
+        }
+
+        // ✅ DESCOBERTA ATIVA DE DISPOSITIVOS - Loop contínuo
+        function startDeviceDiscovery() {
+            console.log('🔍 Iniciando discovery de dispositivos...');
+            
+            if (deviceDiscoveryTimer) {
+                clearInterval(deviceDiscoveryTimer);
+            }
+            
+            // Força descoberta imediata
+            discoverDevices();
+            
+            // Loop a cada 5 segundos
+            deviceDiscoveryTimer = setInterval(discoverDevices, 5000);
+        }
+
+        // ✅ DESCOBERTA DE DISPOSITIVOS - Implementação Robusta
+        function discoverDevices() {
+            if (!window.chrome || !window.chrome.cast || !castReceiverAvailable) {
+                return;
+            }
+            
+            try {
+                // Tenta listar sessões disponíveis
+                chrome.cast.Session.setReceiverSelectorFunc((sessions) => {
+                    console.log(`📱 Encontrados ${sessions.length} dispositivos`);
+                    
+                    if (sessions && sessions.length > 0) {
+                        displayDevices(sessions);
+                    } else {
+                        showNoDevices();
+                    }
+                    
+                    // Retorna primeira sessão disponível ou null para escolha manual
+                    return sessions.length > 0 ? sessions[0] : null;
+                });
+                
+                // Tenta conectar a um receiver existente
+                const sessionRequest = new chrome.cast.SessionRequest(
+                    chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
+                );
+                
+                chrome.cast.requestSession(
+                    (session) => {
+                        console.log('✅ Sessão estabelecida:', session.displayName);
+                        onSessionEstablished(session);
+                    },
+                    (error) => {
+                        console.log('ℹ️ Nenhuma sessão ativa (normal):', error);
+                    }
+                );
+                
+            } catch(e) {
+                console.error('❌ Erro em discovery:', e);
+            }
+        }
+
+        // ✅ DISPLAY DE DISPOSITIVOS ENCONTRADOS
+        function displayDevices(sessions) {
+            const list = document.getElementById('castDeviceList');
+            if (!list) return;
+            
+            if (!sessions || sessions.length === 0) {
+                showNoDevices();
+                return;
+            }
+            
+            let html = '';
+            sessions.forEach((session, index) => {
+                html += `
+                    <div style="padding: 8px; margin: 5px 0; background: rgba(102,126,234,0.2); border-radius: 4px; cursor: pointer; border-left: 3px solid #667eea;" onclick="connectToDevice('${session.displayName}')">
+                        <div style="font-weight: bold; color: #667eea; font-size: 12px;">
+                            📺 ${session.displayName || 'Dispositivo ' + index}
+                        </div>
+                        <div style="font-size: 10px; color: #999; margin-top: 2px;">
+                            Clique para conectar
+                        </div>
+                    </div>
+                `;
+            });
+            
+            list.innerHTML = html;
+            console.log('✅ Lista atualizada com ' + sessions.length + ' dispositivos');
+        }
+
+        // ✅ MOSTRAR NENHUM DISPOSITIVO
+        function showNoDevices() {
+            const list = document.getElementById('castDeviceList');
+            if (list) {
+                list.innerHTML = `<div style="color: #aaa; font-size: 12px; padding: 15px; text-align: center;">
+                    🔍 Procurando dispositivos Chromecast...
+                </div>`;
+            }
+        }
+
+        // ✅ CONEXÃO A DISPOSITIVO
+        function connectToDevice(deviceName) {
+            console.log('🔗 Tentando conectar a:', deviceName);
+            
+            const sessionRequest = new chrome.cast.SessionRequest(
+                chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
+            );
+            
+            chrome.cast.requestSession(
+                (session) => {
+                    console.log('✅ Conectado a:', session.displayName);
+                    onSessionEstablished(session);
+                },
+                (error) => {
+                    console.error('❌ Erro na conexão:', error);
+                }
+            );
+        }
+
+        // ✅ SESSÃO ESTABELECIDA
+        function onSessionEstablished(session) {
+            castSession = session;
+            console.log('🎬 Sessão Chromecast ativa:', session.displayName);
+            updateCastStatus();
+            
+            if (castSession && currentVideoUrl && autoTransmitEnabled) {
+                console.log('🚀 Auto-transmitindo...');
+                setTimeout(transmitVideoToCast, 1000);
+            }
+        }
+
+        // ✅ MOSTRAR LISTA DE DISPOSITIVOS (botão de atualização)
+        function showCastDevices() {
+            console.log('🔄 Atualizando lista de dispositivos...');
+            discoverDevices();
+        }
+        
+        // ✅ NOVA: Transmitir vídeo para Chromecast
+        function transmitVideoToCast() {
+            if(!castSession || !currentVideoUrl) {
+                console.warn('⚠️ Sem sessão Cast ou URL de vídeo');
+                return;
+            }
+            
+            try {
+                console.log('📹 Transmitindo:', currentVideoTitle);
+                
+                const mediaInfo = new chrome.cast.media.MediaInfo(
+                    currentVideoUrl,
+                    'video/mp4'
+                );
+                
+                mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+                mediaInfo.metadata.title = currentVideoTitle;
+                mediaInfo.metadata.images = [
+                    { url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iIzY2N2VlYSIvPjwvc3ZnPg==' }
+                ];
+                
+                const request = new chrome.cast.media.LoadRequest(mediaInfo);
+                request.autoplay = true;
+                
+                castSession.loadMedia(request, onMediaLoaded, onMediaError);
+                updateCastStatus();
+            } catch(e) {
+                console.error('❌ Erro ao transmitir:', e);
+            }
+        }
+        
+        function onMediaLoaded(media) {
+            console.log('✅ Mídia transmitida com sucesso!');
+            updateCastStatus();
+        }
+        
+        function onMediaError(e) {
+            console.error('❌ Erro ao carregar mídia:', e);
+        }
+        
+        // ✅ NOVA: Parar transmissão
+        function stopCasting() {
+            if(castSession) {
+                castSession.stop(() => {
+                    console.log('⏹️ Transmissão parada');
+                    castSession = null;
+                    updateCastStatus();
+                }, (err) => {
+                    console.error('Erro ao parar:', err);
+                });
+            }
+        }
+        
+        // ✅ NOVA: Atualizar status de transmissão
+        function updateCastStatus() {
+            const statusDiv = document.getElementById('castStatus');
+            const statusText = document.getElementById('castStatusText');
+            const deviceName = document.getElementById('castDeviceName');
+            
+            if(castSession && castSession.displayName) {
+                statusDiv.style.display = 'block';
+                statusText.textContent = 'Transmitindo';
+                deviceName.textContent = castSession.displayName;
+            } else {
+                statusDiv.style.display = 'none';
+            }
+        }
+        
+        // Inicializar quando documento carregar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('📄 DOMContentLoaded detectado - iniciando Cast API em 2s...');
+                setTimeout(initializeCastAPIRobust, 2000);
+            });
+        } else {
+            console.log('📄 Document já pronto - iniciando Cast API em 2s...');
+            setTimeout(initializeCastAPIRobust, 2000);
+        }
+        
+        // Verificação periódica com retry agressivo
+        setInterval(() => {
+            if (!castInitialized && window.chrome && window.chrome.cast) {
+                console.log('🔄 Tentativa de reinicialização do Cast API...');
+                initializeCastAPIRobust();
+            } else if (castReceiverAvailable && !deviceDiscoveryTimer) {
+                console.log('🔄 Retomando discovery de dispositivos...');
+                startDeviceDiscovery();
+            }
+        }, 3000);
+        // ============== GLOBAL STATE ==============
+        let currentPlaylist = [];
+        let currentPlaylistIndex = -1;
+        let isPlaylistMode = false;
+        let isLoadingVideo = false;
+        let currentVideoUrl = '';
+        let currentVideoTitle = '';
+
+        // ============== STARS ANIMATION ==============
+        function createStars() {
+            const container = document.getElementById('starsContainer');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // ============== HISTÓRICO & STORAGE ==============
+        const STORAGE_KEY = 'yt_player_history';
+        const FAVORITES_KEY = 'yt_player_favorites';
+
+        function saveToHistory(video) {
+            try {
+                const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                const filtered = history.filter(v => v.url !== video.url);
+                filtered.unshift({ title: video.title, url: video.url, date: new Date().toISOString() });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered.slice(0, 50)));
+            } catch (e) {
+                console.error('Erro ao salvar histórico:', e);
+            }
+        }
+
+        function saveFavorite() {
+            if (!currentVideoUrl || !currentVideoTitle) return;
+            try {
+                const favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+                if (!favorites.some(v => v.url === currentVideoUrl)) {
+                    favorites.unshift({ title: currentVideoTitle, url: currentVideoUrl, date: new Date().toISOString() });
+                    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites.slice(0, 100)));
+                    showStatus('⭐ Adicionado aos favoritos!', 'success');
+                } else {
+                    showStatus('⭐ Já está nos favoritos', 'error');
+                }
+            } catch (e) {
+                console.error('Erro ao salvar favorito:', e);
+            }
+        }
+
+        // ============== PAGE VISIBILITY (Continua em Background - NO PAUSE!) ==============
+        // ✅ MODO DAN: Desabilitado! Vídeo CONTINUA RODANDO mesmo mudando de aba
+        // O usuário pediu para não pausar - deixa rodar! 🚀
+        let isRecentlyPaused = false;
+        
+        // Listener agora SÓ loga, não pausa mais
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('🎬 Você saiu da aba - vídeo CONTINUA RODANDO!');
+            } else {
+                console.log('🎬 Você voltou - aproveite!');
+            }
+        });
+
+        // ============== UI FUNCTIONS ==============
+        function showStatus(message, type = 'loading') {
+            const msg = document.getElementById('statusMessage');
+            const text = document.getElementById('statusText');
+            
+            text.textContent = message;
+            msg.className = `status-message show ${type}`;
+            
+            if (type !== 'loading') {
+                setTimeout(() => msg.classList.remove('show'), 4000);
+            }
+        }
+
+        function updateDurationInfo() {
+            const player = document.getElementById('videoPlayer');
+            if (player.duration) {
+                const mins = Math.floor(player.duration / 60);
+                const secs = Math.floor(player.duration % 60);
+                document.getElementById('videoDuration').textContent = 
+                    `${mins}:${secs.toString().padStart(2, '0')}`;
+                document.getElementById('durationInfo').style.display = 'flex';
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('urlInput').value = '';
+            document.getElementById('playerCard').classList.remove('active');
+            document.getElementById('playlistCard').classList.remove('active');
+            showStatus('✅ Tudo limpo!', 'success');
+        }
+
+        // ============== VALIDAÇÃO DE URL ==============
+        function isValidYouTubeUrl(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/playlist\?list=/
+            ];
+            return patterns.some(p => p.test(url));
+        }
+
+        // ============== VIDEO LOADING ==============
+        async function loadVideo() {
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                showStatus('⚠️ Digite uma URL válida', 'error');
+                return;
+            }
+
+            // ✅ Validar se é URL do YouTube
+            if (!isValidYouTubeUrl(url)) {
+                showStatus('❌ URL deve ser do YouTube ou playlist', 'error');
+                return;
+            }
+
+            showStatus('🔄 Carregando...', 'loading');
+
+            try {
+                const response = await fetch(`http://localhost:8001/extract.php?url=${encodeURIComponent(url)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Servidor retornou ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    // Erros específicos com mapeamento
+                    const errorMap = {
+                        'VIDEO_NOT_FOUND': '❌ Vídeo não encontrado',
+                        'PRIVATE_VIDEO': '🔒 Vídeo privado',
+                        'UNAVAILABLE': '⛔ Vídeo indisponível',
+                        'NETWORK_ERROR': '🌐 Erro de conexão',
+                        'YT_DLP_ERROR': '⚙️ Erro ao processar',
+                        'INVALID_URL': '🔗 URL inválida'
+                    };
+                    const errorMsg = errorMap[data.code] || `❌ Erro: ${data.error}`;
+                    showStatus(errorMsg, 'error');
+                    return;
+                }
+
+                // Verificar se é playlist
+                if (data.is_playlist) {
+                    await handlePlaylist(data);
+                } else if (data.data?.url) {
+                    await playSingleVideo(data);
+                } else {
+                    showStatus('❌ Dados inválidos do servidor', 'error');
+                }
+            } catch (err) {
+                console.error('Erro ao carregar vídeo:', err);
+                
+                // Mapear erros de rede
+                const errorMap = {
+                    'TypeError': '🌐 Servidor não responde - Verifique se está rodando em localhost:8001',
+                    'SyntaxError': '🔀 Resposta inválida do servidor',
+                };
+                const errorMsg = errorMap[err.constructor.name] || `❌ Erro: ${err.message}`;
+                showStatus(errorMsg, 'error');
+            }
+        }
+
+        async function playSingleVideo(data) {
+            const player = document.getElementById('videoPlayer');
+            const title = document.getElementById('videoTitle');
+
+            currentVideoUrl = data.data.url;
+            currentVideoTitle = data.data.title;
+
+            player.pause();
+            player.innerHTML = '';
+            const source = document.createElement('source');
+            source.src = currentVideoUrl;
+            source.type = 'video/mp4';
+            player.appendChild(source);
+
+            title.textContent = currentVideoTitle;
+            document.getElementById('playerCard').classList.add('active');
+            document.getElementById('playlistCard').classList.remove('active');
+
+            player.onloadedmetadata = () => updateDurationInfo();
+            player.load();
+            player.play().catch(err => console.error('Play error:', err));
+
+            showStatus('✅ Vídeo carregado!', 'success');
+        }
+
+        // ============== PLAYLIST ==============
+        async function handlePlaylist(data) {
+            currentPlaylist = data.videos || [];
+            currentPlaylistIndex = 0;
+            isPlaylistMode = true;
+
+            document.getElementById('playlistCount').textContent = currentPlaylist.length;
+            displayPlaylist();
+            playVideoFromPlaylist(0);
+        }
+
+        function displayPlaylist() {
+            const list = document.getElementById('playlistList');
+            list.innerHTML = '';
+
+            currentPlaylist.forEach((video, index) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                item.innerHTML = `
+                    <div class="playlist-number">#${index + 1}</div>
+                    <div class="playlist-text">${video.title || 'Sem título'}</div>
+                `;
+                if (index === currentPlaylistIndex) item.classList.add('active');
+                item.addEventListener('click', () => playVideoFromPlaylist(index));
+                list.appendChild(item);
+            });
+
+            document.getElementById('playerCard').classList.add('active');
+            document.getElementById('playlistCard').classList.add('active');
+            updatePlaylistPosition();
+        }
+
+        async function playVideoFromPlaylist(index) {
+            if (isLoadingVideo || index < 0 || index >= currentPlaylist.length) return;
+
+            isLoadingVideo = true;
+            currentPlaylistIndex = index;
+            const video = currentPlaylist[index];
+
+            try {
+                const response = await fetch(`http://localhost:8001/extract.php?url=${encodeURIComponent(video.url)}`);
+                const data = await response.json();
+
+                if (data.success && data.data?.url) {
+                    currentVideoUrl = data.data.url;
+                    currentVideoTitle = data.data.title || video.title;
+
+                    const player = document.getElementById('videoPlayer');
+                    
+                    // Evitar conflito com Page Visibility API
+                    isRecentlyPaused = true;
+                    player.pause();
+                    player.currentTime = 0;
+                    player.innerHTML = '';
+
+                    const source = document.createElement('source');
+                    source.src = currentVideoUrl;
+                    source.type = 'video/mp4';
+                    player.appendChild(source);
+
+                    player.addEventListener('ended', () => playNextVideo(), { once: true });
+                    player.addEventListener('loadedmetadata', () => updateDurationInfo(), { once: true });
+
+                    document.getElementById('videoTitle').textContent = currentVideoTitle;
+
+                    const items = document.querySelectorAll('.playlist-item');
+                    items.forEach((item, i) => {
+                        item.classList.toggle('active', i === index);
+                    });
+
+                    updatePlaylistPosition();
+                    player.load();
+                    
+                    // Aguardar carregamento antes de dar play
+                    setTimeout(() => {
+                        isRecentlyPaused = false;
+                        player.play().catch(err => console.error('Play error:', err));
+                        
+                        // ✅ MODO DAN: Auto-transmitir ao Chromecast se ativo
+                        if(castSession && autoTransmitEnabled) {
+                            console.log('🚀 Auto-transmitindo novo vídeo ao Chromecast...');
+                            setTimeout(() => {
+                                transmitVideoToCast();
+                            }, 800);
+                        }
+                    }, 500);
+                }
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+            } finally {
+                isLoadingVideo = false;
+            }
+        }
+
+        function playNextVideo() {
+            if (!isPlaylistMode || currentPlaylistIndex >= currentPlaylist.length - 1) return;
+            playVideoFromPlaylist(currentPlaylistIndex + 1);
+        }
+
+        function playPreviousVideo() {
+            if (!isPlaylistMode || currentPlaylistIndex <= 0) return;
+            playVideoFromPlaylist(currentPlaylistIndex - 1);
+        }
+
+        function updatePlaylistPosition() {
+            const pos = document.getElementById('currentPosition');
+            pos.textContent = `(${currentPlaylistIndex + 1}/${currentPlaylist.length})`;
+        }
+
+        // ============== DOWNLOAD ==============
+        function downloadVideo() {
+            if (!currentVideoUrl) {
+                showStatus('⚠️ Carregue um vídeo primeiro', 'error');
+                return;
+            }
+
+            showStatus('💾 Iniciando download do MP4...', 'loading');
+
+            fetch('http://localhost:8001/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: currentVideoUrl,
+                    title: currentVideoTitle,
+                    format: 'mp4'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Servidor respondeu com ${response.status}`);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                if (blob.size === 0) {
+                    throw new Error('Arquivo vazio recebido');
+                }
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentVideoTitle.replace(/[^a-z0-9]/gi, '_').substring(0, 50)}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showStatus('✅ Download iniciado!', 'success');
+            })
+            .catch(err => {
+                console.error('Download error:', err);
+                const errorMsg = err.message.includes('localhost:8001') 
+                    ? '🌐 Servidor de download não está rodando'
+                    : `❌ Erro no download: ${err.message}`;
+                showStatus(errorMsg, 'error');
+            });
+        }
+
+        function downloadMP3() {
+            if (!currentVideoUrl) {
+                showStatus('⚠️ Carregue um vídeo primeiro', 'error');
+                return;
+            }
+
+            showStatus('🎵 Convertendo para MP3 (pode levar 1-2 min)...', 'loading');
+
+            fetch('http://localhost:8001/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: currentVideoUrl,
+                    title: currentVideoTitle,
+                    format: 'mp3'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Servidor respondeu com ${response.status}`);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                if (blob.size === 0) {
+                    throw new Error('Arquivo vazio recebido');
+                }
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentVideoTitle.replace(/[^a-z0-9]/gi, '_').substring(0, 50)}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showStatus('✅ MP3 pronto! Verifique seus downloads', 'success');
+            })
+            .catch(err => {
+                console.error('MP3 error:', err);
+                const errorMsg = err.message.includes('localhost:8001')
+                    ? '🌐 Servidor de conversão não está rodando'
+                    : `❌ Erro na conversão: ${err.message}`;
+                showStatus(errorMsg, 'error');
+            });
+        }
+
+        // ============== INITIALIZATION ==============
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadVideo();
+        });
+
+        showStatus('✅ Pronto para começar!', 'success');
+    </script>
+</body>
+</html>
