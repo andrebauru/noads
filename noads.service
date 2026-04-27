@@ -1,0 +1,42 @@
+[Unit]
+Description=NOADS - NoAds YouTube Extraction Service
+Documentation=https://github.com/andrebauru/noads
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=seu_usuario
+Group=seu_usuario
+WorkingDirectory=/home/seu_usuario/noads
+
+# Caminho do executável Python
+ExecStart=/home/seu_usuario/noads/venv/bin/python3 /home/seu_usuario/noads/simple_api.py
+
+# Configurações de restart
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=5
+
+# Limites de recursos
+MemoryMax=512M
+CPUQuota=50%
+
+# Segurança
+PrivateTmp=true
+NoNewPrivileges=true
+
+# Logs
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=noads
+
+# Limpar antes de sair
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
+Alias=noads.service

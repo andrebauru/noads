@@ -1,0 +1,266 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                  🚀 GUIA RÁPIDO - DEPLOY LINUX/UBUNTU                      ║
+║                        NOADS v3.0 - Auto-Restart                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+═════════════════════════════════════════════════════════════════════════════
+📋 OPÇÕES DE SETUP
+═════════════════════════════════════════════════════════════════════════════
+
+OPÇÃO 1️⃣ - Deploy Completo (Recomendado para Produção)
+────────────────────────────────────────────────────────
+
+Use se você tem acesso sudo e quer auto-start no boot:
+
+$ scp deploy-linux.sh seu_usuario@you.andretsc.dev:~
+$ ssh seu_usuario@you.andretsc.dev
+
+No servidor:
+$ chmod +x deploy-linux.sh
+$ sudo ./deploy-linux.sh
+
+✅ O que faz:
+   • Instala Python3, pip, git, curl
+   • Cria projeto em /var/www/noads
+   • Clona repositório GitHub
+   • Cria ambiente virtual Python
+   • Instala dependências
+   • Cria systemd service (auto-start no boot)
+   • Inicia o serviço automaticamente
+   • Gera script de auto-restart
+
+═════════════════════════════════════════════════════════════════════════════
+
+OPÇÃO 2️⃣ - Setup Simples (Sem sudo)
+─────────────────────────────────────
+
+Use se não tiver sudo ou quiser rodar no seu usuário:
+
+$ scp setup.sh seu_usuario@you.andretsc.dev:~
+$ ssh seu_usuario@you.andretsc.dev
+
+No servidor:
+$ bash setup.sh
+$ cd ~/noads
+$ ./run.sh
+
+✅ Vantagens:
+   • Roda no seu usuário
+   • Sem permissões de admin
+   • Simples e direto
+
+═════════════════════════════════════════════════════════════════════════════
+
+OPÇÃO 3️⃣ - Auto-Restart Script
+────────────────────────────────
+
+Para monitorar e reiniciar automaticamente:
+
+$ chmod +x auto-restart.sh
+$ nohup ./auto-restart.sh > auto-restart.log 2>&1 &
+
+✅ Monitora:
+   • Testa API a cada 10 segundos
+   • Reinicia se cair
+   • Máximo 5 restarts
+   • Salva logs
+
+═════════════════════════════════════════════════════════════════════════════
+🎯 RECOMENDAÇÃO PARA VOCÊ
+═════════════════════════════════════════════════════════════════════════════
+
+Como você quer PRODUÇÃO com auto-restart:
+
+👉 USE: deploy-linux.sh (OPÇÃO 1)
+
+Motivos:
+✅ Systemd gerencia tudo
+✅ Auto-start no reboot
+✅ Auto-restart se cair (Restart=always)
+✅ Logs centralizados
+✅ Sem scripts em background
+✅ Pronto para produção
+
+═════════════════════════════════════════════════════════════════════════════
+📋 PASSO A PASSO - DEPLOY COMPLETO
+═════════════════════════════════════════════════════════════════════════════
+
+PASSO 1: Preparar arquivo no seu PC
+───────────────────────────────────
+Copie para seu computador:
+  d:\Programacao\Noads\deploy-linux.sh
+
+PASSO 2: Enviar para servidor
+──────────────────────────────
+$ scp deploy-linux.sh seu_usuario@you.andretsc.dev:~/
+
+Substitua:
+  • seu_usuario = seu usuário no servidor
+  • you.andretsc.dev = seu domínio
+
+PASSO 3: Conectar ao servidor
+──────────────────────────────
+$ ssh seu_usuario@you.andretsc.dev
+
+PASSO 4: Executar deploy
+────────────────────────
+$ chmod +x deploy-linux.sh
+$ sudo ./deploy-linux.sh
+
+PASSO 5: Verificar status
+─────────────────────────
+$ sudo systemctl status noads
+
+Esperado:
+  ✅ active (running)
+
+PASSO 6: Testar API
+──────────────────
+$ curl http://127.0.0.1:8001/extract.php
+
+Esperado:
+  Resposta JSON com dados de exemplo
+
+═════════════════════════════════════════════════════════════════════════════
+🔧 COMANDOS SYSTEMD (Após deploy)
+═════════════════════════════════════════════════════════════════════════════
+
+Ver status:
+  $ sudo systemctl status noads
+
+Ver logs em tempo real:
+  $ sudo journalctl -u noads -f
+
+Ver últimas 20 linhas de log:
+  $ sudo journalctl -u noads -n 20
+
+Reiniciar serviço:
+  $ sudo systemctl restart noads
+
+Parar serviço:
+  $ sudo systemctl stop noads
+
+Iniciar serviço:
+  $ sudo systemctl start noads
+
+Desabilitar auto-start no boot:
+  $ sudo systemctl disable noads
+
+═════════════════════════════════════════════════════════════════════════════
+⚙️ CONFIGURAR NGINX/APACHE (Web Server)
+═════════════════════════════════════════════════════════════════════════════
+
+Para expor a API via HTTPS (you.andretsc.dev), adicione proxy:
+
+NGINX - /etc/nginx/sites-available/default:
+────────────────────────────────────────────
+location /extract.php {
+    proxy_pass http://127.0.0.1:8001;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+Depois:
+  $ sudo systemctl restart nginx
+
+APACHE - /etc/apache2/sites-available/default.conf:
+─────────────────────────────────────────────────────
+<Location /extract.php>
+    ProxyPass http://127.0.0.1:8001
+    ProxyPassReverse http://127.0.0.1:8001
+</Location>
+
+Depois:
+  $ sudo a2enmod proxy proxy_http
+  $ sudo systemctl restart apache2
+
+═════════════════════════════════════════════════════════════════════════════
+📊 AUTO-RESTART AUTOMÁTICO
+═════════════════════════════════════════════════════════════════════════════
+
+Com deploy-linux.sh, você já tem:
+
+Restart=always
+RestartSec=10
+
+Isso significa:
+✅ Se processo morrer: reinicia após 10 segundos
+✅ Até 5 tentativas por minuto
+✅ Após 60s sem crash: contador zera
+
+Nada mais precisa!
+
+═════════════════════════════════════════════════════════════════════════════
+❓ TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════
+
+Problema: Deploy diz "Este script deve ser executado com sudo"
+Solução:
+  $ sudo ./deploy-linux.sh
+
+Problema: Porta 8001 já está em uso
+Solução:
+  Edite deploy-linux.sh e mude PORT=8001 para outra porta
+  Ou verifique o processo: sudo lsof -i :8001
+
+Problema: Permissão negada ao clonar repo
+Solução:
+  Configure SSH key: ssh-keygen -t rsa
+  Adicione em GitHub Settings → SSH Keys
+
+Problema: Python ou pip não encontrado
+Solução:
+  $ sudo apt-get update
+  $ sudo apt-get install python3 python3-pip
+
+═════════════════════════════════════════════════════════════════════════════
+✅ VALIDAÇÃO APÓS DEPLOY
+═════════════════════════════════════════════════════════════════════════════
+
+Checklist de verificação:
+
+[  ] Serviço ativo: sudo systemctl status noads
+[  ] API respondendo: curl http://127.0.0.1:8001/extract.php
+[  ] Logs limpos: sudo journalctl -u noads
+[  ] Auto-start habilitado: sudo systemctl is-enabled noads
+[  ] Venv criado: test -d /var/www/noads/venv && echo "OK"
+[  ] Repositório atualizado: cd /var/www/noads && git log -1
+[  ] Acesso web: https://you.andretsc.dev/index.html
+
+═════════════════════════════════════════════════════════════════════════════
+🎯 PRÓXIMAS AÇÕES
+═════════════════════════════════════════════════════════════════════════════
+
+1️⃣ Execute deploy-linux.sh no seu servidor Ubuntu
+
+2️⃣ Verifique se está rodando:
+   $ sudo systemctl status noads
+
+3️⃣ Configure seu web server (nginx/apache) para proxy
+
+4️⃣ Teste acesso:
+   https://you.andretsc.dev/index.html
+
+5️⃣ Monitore logs (opcional):
+   $ sudo journalctl -u noads -f
+
+═════════════════════════════════════════════════════════════════════════════
+📞 RESUMO RÁPIDO
+═════════════════════════════════════════════════════════════════════════════
+
+Para iniciar tudo no seu servidor Ubuntu:
+
+$ scp deploy-linux.sh seu_usuario@you.andretsc.dev:~
+$ ssh seu_usuario@you.andretsc.dev
+$ chmod +x deploy-linux.sh
+$ sudo ./deploy-linux.sh
+
+✅ PRONTO! Sua API está rodando com auto-restart.
+
+═════════════════════════════════════════════════════════════════════════════
+
+Versão: 3.0 | Data: 27 de Abril de 2026
+OS: Linux/Ubuntu
+Status: PRONTO PARA PRODUÇÃO ✅
