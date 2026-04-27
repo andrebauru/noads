@@ -108,7 +108,6 @@ class ExtractHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({
                 'success': True,
                 'cached': False,
-                'mock': False,
                 'data': result
             }).encode())
             return

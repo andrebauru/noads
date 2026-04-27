@@ -1,14 +1,32 @@
 ╔════════════════════════════════════════════════════════════════════════════╗
-║                  🚀 GUIA RÁPIDO - DEPLOY LINUX/UBUNTU                      ║
-║                        NOADS v3.0 - Auto-Restart                           ║
+║              🚀 GUIA COMPLETO - DEPLOY LINUX/UBUNTU NOADS v3.0             ║
+║             Versão: 3.0 | Data: 27 de Abril de 2026 | Status: ✅          ║
 ╚════════════════════════════════════════════════════════════════════════════╝
+
+═════════════════════════════════════════════════════════════════════════════
+⚠️ PROBLEMA RESOLVIDO - LEIA ANTES DE FAZER DEPLOY
+═════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ANTERIOR:
+   • API forçava 3 vídeos padrão do sistema (MOCK_VIDEOS)
+   • Usuários não conseguiam carregar seus próprios vídeos
+   • Playlist não funcionava
+
+SOLUÇÃO IMPLEMENTADA (v3.0):
+   ✅ Removido MOCK_VIDEOS de extract.php
+   ✅ Removido validação de IDs de api.py
+   ✅ Agora aceita QUALQUER vídeo do YouTube
+   ✅ Mantém cache para melhor performance
+   ✅ Fallback seguro se yt-dlp falhar
+
+VERSÃO ATUAL: main branch - SEMPRE ATUALIZADO
 
 ═════════════════════════════════════════════════════════════════════════════
 📋 OPÇÕES DE SETUP
 ═════════════════════════════════════════════════════════════════════════════
 
-OPÇÃO 1️⃣ - Deploy Completo (Recomendado para Produção)
-────────────────────────────────────────────────────────
+OPÇÃO 1️⃣ - DEPLOY COMPLETO (Recomendado para Produção) ⭐ ESCOLHA ESTA
+────────────────────────────────────────────────────────────────────
 
 Use se você tem acesso sudo e quer auto-start no boot:
 
@@ -19,20 +37,23 @@ No servidor:
 $ chmod +x deploy-linux.sh
 $ sudo ./deploy-linux.sh
 
-✅ O que faz:
-   • Instala Python3, pip, git, curl
+✅ O que faz automaticamente:
+   • Verifica e instala Python3, pip, git, curl
    • Cria projeto em /var/www/noads
-   • Clona repositório GitHub
+   • Clona repositório GitHub (versão com CORREÇÃO)
    • Cria ambiente virtual Python
-   • Instala dependências
+   • Instala yt-dlp e dependências
+   • Cria estrutura de cache/logs
    • Cria systemd service (auto-start no boot)
    • Inicia o serviço automaticamente
    • Gera script de auto-restart
+   • Configura permissões
+
+⏱️ Tempo: ~5-10 minutos
 
 ═════════════════════════════════════════════════════════════════════════════
-
-OPÇÃO 2️⃣ - Setup Simples (Sem sudo)
-─────────────────────────────────────
+OPÇÃO 2️⃣ - SETUP SIMPLES (Sem sudo)
+───────────────────────────────────
 
 Use se não tiver sudo ou quiser rodar no seu usuário:
 
@@ -45,81 +66,170 @@ $ cd ~/noads
 $ ./run.sh
 
 ✅ Vantagens:
-   • Roda no seu usuário
+   • Roda no seu usuário (não www-data)
    • Sem permissões de admin
    • Simples e direto
+   • Ideal para desenvolvimento
+
+⏱️ Tempo: ~5 minutos
 
 ═════════════════════════════════════════════════════════════════════════════
 
-OPÇÃO 3️⃣ - Auto-Restart Script
-────────────────────────────────
+OPÇÃO 3️⃣ - RESET COMPLETO (Se houve problema anterior)
+──────────────────────────────────────────────────────
 
-Para monitorar e reiniciar automaticamente:
+Use para limpar tudo e fazer fresh install (versão com CORREÇÃO):
 
-$ chmod +x auto-restart.sh
-$ nohup ./auto-restart.sh > auto-restart.log 2>&1 &
+$ ssh seu_usuario@you.andretsc.dev
+$ cd /var/www
+$ sudo rm -rf noads
+$ sudo git clone https://github.com/andrebauru/noads.git
+$ cd noads
+$ sudo python3 -m venv venv
+$ source venv/bin/activate
+$ pip install yt-dlp flask requests
+$ mkdir -p cache logs
+$ sudo chown -R www-data:www-data /var/www/noads
+$ sudo chmod -R 755 /var/www/noads
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable noads
+$ sudo systemctl start noads
 
-✅ Monitora:
-   • Testa API a cada 10 segundos
-   • Reinicia se cair
-   • Máximo 5 restarts
-   • Salva logs
+⏱️ Tempo: ~10-15 minutos
 
 ═════════════════════════════════════════════════════════════════════════════
 🎯 RECOMENDAÇÃO PARA VOCÊ
 ═════════════════════════════════════════════════════════════════════════════
 
-Como você quer PRODUÇÃO com auto-restart:
+Como você quer PRODUÇÃO com auto-restart e seu vídeo não está funcionando:
 
-👉 USE: deploy-linux.sh (OPÇÃO 1)
+👉 RECOMENDAÇÃO: 
+   1. Se deploy-linux.sh já foi executado: Use OPÇÃO 3 (RESET COMPLETO)
+   2. Se é primeira vez: Use OPÇÃO 1 (DEPLOY COMPLETO)
+   3. Se quer debug: Veja seção "SCRIPT DE DIAGNÓSTICO" abaixo
 
 Motivos:
-✅ Systemd gerencia tudo
-✅ Auto-start no reboot
-✅ Auto-restart se cair (Restart=always)
-✅ Logs centralizados
-✅ Sem scripts em background
-✅ Pronto para produção
+✅ OPÇÃO 1: Systemd gerencia tudo automaticamente
+✅ OPÇÃO 1: Auto-start no reboot do servidor
+✅ OPÇÃO 1: Auto-restart se cair (Restart=always)
+✅ OPÇÃO 1: Logs centralizados
+✅ OPÇÃO 1: Sem scripts em background
+✅ OPÇÃO 1: Pronto para produção
+✅ OPÇÃO 3: Garante versão atualizada com CORREÇÃO de MOCK_VIDEOS
 
 ═════════════════════════════════════════════════════════════════════════════
-📋 PASSO A PASSO - DEPLOY COMPLETO
+📋 PASSO A PASSO - DEPLOY COMPLETO (OPÇÃO 1 - RECOMENDADO)
 ═════════════════════════════════════════════════════════════════════════════
 
-PASSO 1: Preparar arquivo no seu PC
-───────────────────────────────────
-Copie para seu computador:
+PASSO 1: Preparar no seu PC
+───────────────────────────
+
+Localizar arquivo:
   d:\Programacao\Noads\deploy-linux.sh
 
 PASSO 2: Enviar para servidor
 ──────────────────────────────
+
 $ scp deploy-linux.sh seu_usuario@you.andretsc.dev:~/
 
 Substitua:
-  • seu_usuario = seu usuário no servidor
-  • you.andretsc.dev = seu domínio
+  • seu_usuario = seu usuário no servidor (ubuntu, admin, etc)
+  • you.andretsc.dev = seu domínio real
 
 PASSO 3: Conectar ao servidor
 ──────────────────────────────
+
 $ ssh seu_usuario@you.andretsc.dev
 
 PASSO 4: Executar deploy
 ────────────────────────
+
 $ chmod +x deploy-linux.sh
 $ sudo ./deploy-linux.sh
 
+Aguarde o processo terminar (5-10 minutos)
+
 PASSO 5: Verificar status
 ─────────────────────────
+
 $ sudo systemctl status noads
 
 Esperado:
   ✅ active (running)
 
+Se não estiver rodando:
+  $ sudo journalctl -u noads -n 30
+  (Procure por erros na saída)
+
 PASSO 6: Testar API
 ──────────────────
-$ curl http://127.0.0.1:8001/extract.php
+
+$ curl "http://127.0.0.1:8001/extract.php?url=https://youtu.be/jNQXAC9IVRw"
 
 Esperado:
-  Resposta JSON com dados de exemplo
+  {
+    "success": true,
+    "data": {
+      "title": "Me at the zoo",
+      "url": "https://... (URL de streaming)"
+    }
+  }
+
+Se não funcionar:
+  $ chmod +x diagnostic.sh
+  $ sudo ./diagnostic.sh
+  (verá status de todos os componentes)
+
+PASSO 7: Configurar NGINX/APACHE (Web Server)
+──────────────────────────────────────────────
+
+Para expor a API via HTTPS (you.andretsc.dev):
+
+NGINX - /etc/nginx/sites-available/default:
+────────────────────────────────────────────
+
+Adicionar na seção server {...}:
+
+  location /extract.php {
+      proxy_pass http://127.0.0.1:8001;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+Depois:
+  $ sudo nginx -t
+  $ sudo systemctl restart nginx
+
+APACHE - /etc/apache2/sites-available/default.conf:
+────────────────────────────────────────────────────
+
+Habilitar módulos:
+  $ sudo a2enmod proxy proxy_http
+
+Adicionar dentro de <VirtualHost>:
+
+  <Location /extract.php>
+      ProxyPass http://127.0.0.1:8001
+      ProxyPassReverse http://127.0.0.1:8001
+  </Location>
+
+Depois:
+  $ sudo systemctl restart apache2
+
+PASSO 8: Testar acesso web
+──────────────────────────
+
+Abrir em navegador:
+  https://you.andretsc.dev
+
+Digite URL do YouTube:
+  • https://www.youtube.com/watch?v=VIDEO_ID
+  • https://youtu.be/VIDEO_ID
+  • https://www.youtube.com/playlist?list=PLAYLIST_ID
+
+Clique em "Carregar" e vídeo deve aparecer no player!
 
 ═════════════════════════════════════════════════════════════════════════════
 🔧 COMANDOS SYSTEMD (Após deploy)
@@ -176,91 +286,186 @@ Depois:
   $ sudo a2enmod proxy proxy_http
   $ sudo systemctl restart apache2
 
+
+🔍 SCRIPT DE DIAGNÓSTICO (Usar se tiver problema)
+═════════════════════════════════════════════════════════════════════════════
+
+Se API não está funcionando, execute diagnóstico automático:
+
+$ cd /var/www/noads
+$ chmod +x diagnostic.sh
+$ sudo ./diagnostic.sh
+
+O script verifica:
+  ✅ Se serviço está rodando
+  ✅ Se API responde
+  ✅ Se permissões estão corretas
+  ✅ Se yt-dlp está instalado
+  ✅ Se porta está aberta
+  ✅ Se nginx/apache está ok
+  ✅ Se cache está funcionando
+
+═════════════════════════════════════════════════════════════════════════════
+❓ TROUBLESHOOTING RÁPIDO
+═════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA: API não responde ("Connection refused")
+SOLUÇÃO:
+  $ sudo systemctl restart noads
+  $ sleep 5
+  $ sudo systemctl status noads
+
+PROBLEMA: Repositório desatualizado (versão antiga com MOCK_VIDEOS)
+SOLUÇÃO:
+  $ cd /var/www/noads
+  $ git pull origin main
+  $ git log --oneline -1
+  (deve mostrar commit recente: "Fix: Remover restricao")
+  $ sudo systemctl restart noads
+
+PROBLEMA: Permissão negada / acesso recusado
+SOLUÇÃO:
+  $ sudo chown -R www-data:www-data /var/www/noads
+  $ sudo chmod -R 755 /var/www/noads
+  $ sudo systemctl restart noads
+
+PROBLEMA: yt-dlp não encontrado
+SOLUÇÃO:
+  $ source /var/www/noads/venv/bin/activate
+  $ pip install --upgrade yt-dlp
+  $ sudo systemctl restart noads
+
+PROBLEMA: Porta 8001 já em uso
+SOLUÇÃO:
+  $ sudo lsof -i :8001
+  (ver qual processo está usando)
+  $ sudo kill -9 <PID>
+
+PROBLEMA: NGINX/APACHE proxy não funciona
+SOLUÇÃO:
+  NGINX:
+    $ sudo nginx -t
+    (deve dizer "successful")
+    $ sudo systemctl restart nginx
+  
+  APACHE:
+    $ sudo apache2ctl configtest
+    (deve dizer "Syntax OK")
+    $ sudo systemctl restart apache2
+
+PROBLEMA: Vídeo não carrega no frontend
+SOLUÇÃO:
+  Abrir DevTools (F12) → Network
+  Procurar por "extract.php"
+  Verificar:
+    • Status: 200 OK (não 404 ou 503)
+    • Response: {"success": true, ...}
+    • Headers: Access-Control-Allow-Origin: *
+
+PROBLEMA: Cache corrompido
+SOLUÇÃO:
+  $ sudo rm -rf /var/www/noads/cache/*.json
+  $ sudo mkdir -p /var/www/noads/cache
+  $ sudo chown www-data:www-data /var/www/noads/cache
+  $ sudo chmod 755 /var/www/noads/cache
+  $ sudo systemctl restart noads
+
 ═════════════════════════════════════════════════════════════════════════════
 📊 AUTO-RESTART AUTOMÁTICO
 ═════════════════════════════════════════════════════════════════════════════
 
-Com deploy-linux.sh, você já tem:
+Com deploy-linux.sh, você já tem auto-restart automático via systemd:
 
-Restart=always
-RestartSec=10
+Configuração em /etc/systemd/system/noads.service:
 
-Isso significa:
+  Restart=always
+  RestartSec=10
+  StartLimitInterval=60
+  StartLimitBurst=5
+
+O que significa:
 ✅ Se processo morrer: reinicia após 10 segundos
-✅ Até 5 tentativas por minuto
+✅ Máximo 5 tentativas por minuto
 ✅ Após 60s sem crash: contador zera
+✅ Auto-start ao rebootar o servidor
 
-Nada mais precisa!
-
-═════════════════════════════════════════════════════════════════════════════
-❓ TROUBLESHOOTING
-═════════════════════════════════════════════════════════════════════════════
-
-Problema: Deploy diz "Este script deve ser executado com sudo"
-Solução:
-  $ sudo ./deploy-linux.sh
-
-Problema: Porta 8001 já está em uso
-Solução:
-  Edite deploy-linux.sh e mude PORT=8001 para outra porta
-  Ou verifique o processo: sudo lsof -i :8001
-
-Problema: Permissão negada ao clonar repo
-Solução:
-  Configure SSH key: ssh-keygen -t rsa
-  Adicione em GitHub Settings → SSH Keys
-
-Problema: Python ou pip não encontrado
-Solução:
-  $ sudo apt-get update
-  $ sudo apt-get install python3 python3-pip
+Nenhum script adicional necessário!
 
 ═════════════════════════════════════════════════════════════════════════════
-✅ VALIDAÇÃO APÓS DEPLOY
+✅ VERIFICAÇÃO PÓS-DEPLOY
 ═════════════════════════════════════════════════════════════════════════════
 
 Checklist de verificação:
 
-[  ] Serviço ativo: sudo systemctl status noads
-[  ] API respondendo: curl http://127.0.0.1:8001/extract.php
-[  ] Logs limpos: sudo journalctl -u noads
-[  ] Auto-start habilitado: sudo systemctl is-enabled noads
-[  ] Venv criado: test -d /var/www/noads/venv && echo "OK"
-[  ] Repositório atualizado: cd /var/www/noads && git log -1
-[  ] Acesso web: https://you.andretsc.dev/index.html
+[  ] Serviço ativo: sudo systemctl status noads (active running)
+[  ] API respondendo: curl http://127.0.0.1:8001/extract.php (JSON)
+[  ] Com URL: curl http://127.0.0.1:8001/extract.php?url=... (sucesso)
+[  ] Logs limpos: sudo journalctl -u noads -n 20 (sem errors)
+[  ] Auto-start habilitado: sudo systemctl is-enabled noads (enabled)
+[  ] Venv criado: test -d /var/www/noads/venv (OK)
+[  ] Repositório atualizado: cd /var/www/noads && git log -1 (recente)
+[  ] NGINX/APACHE proxy: sudo nginx -t ou apache2ctl configtest (OK)
+[  ] Acesso web: https://you.andretsc.dev (carrega)
+[  ] Vídeo carrega: Digite URL do YouTube e teste
 
 ═════════════════════════════════════════════════════════════════════════════
-🎯 PRÓXIMAS AÇÕES
+🚀 ATUALIZAR CÓDIGO (Patches futuros)
 ═════════════════════════════════════════════════════════════════════════════
 
-1️⃣ Execute deploy-linux.sh no seu servidor Ubuntu
+Se houver atualizações no repositório:
 
-2️⃣ Verifique se está rodando:
-   $ sudo systemctl status noads
+$ cd /var/www/noads
+$ git pull origin main
+$ sudo systemctl restart noads
+$ sleep 5
+$ sudo journalctl -u noads -n 20
 
-3️⃣ Configure seu web server (nginx/apache) para proxy
-
-4️⃣ Teste acesso:
-   https://you.andretsc.dev/index.html
-
-5️⃣ Monitore logs (opcional):
-   $ sudo journalctl -u noads -f
+Automático! Nenhuma instalação adicional.
 
 ═════════════════════════════════════════════════════════════════════════════
 📞 RESUMO RÁPIDO
 ═════════════════════════════════════════════════════════════════════════════
 
-Para iniciar tudo no seu servidor Ubuntu:
+Para deploy rápido no seu servidor Ubuntu:
 
-$ scp deploy-linux.sh seu_usuario@you.andretsc.dev:~
-$ ssh seu_usuario@you.andretsc.dev
-$ chmod +x deploy-linux.sh
-$ sudo ./deploy-linux.sh
+1. Copiar deploy-linux.sh para seu servidor
+2. Executar: sudo ./deploy-linux.sh
+3. Aguardar ~10 minutos
+4. Testar: curl http://127.0.0.1:8001/extract.php
+5. Configurar nginx/apache proxy (ver acima)
+6. Abrir https://you.andretsc.dev e testar
 
-✅ PRONTO! Sua API está rodando com auto-restart.
+✅ PRONTO! API rodando com auto-restart.
 
 ═════════════════════════════════════════════════════════════════════════════
+🔗 REPOSITÓRIO GITHUB
+═════════════════════════════════════════════════════════════════════════════
 
-Versão: 3.0 | Data: 27 de Abril de 2026
-OS: Linux/Ubuntu
-Status: PRONTO PARA PRODUÇÃO ✅
+GitHub: https://github.com/andrebauru/noads
+Branch: main (versão mais recente com CORREÇÃO)
+Versão: 3.0
+Status: ✅ PRONTO PARA PRODUÇÃO
+
+═════════════════════════════════════════════════════════════════════════════
+✨ VERSÃO ANTERIOR vs VERSÃO ATUAL
+═════════════════════════════════════════════════════════════════════════════
+
+ANTES (versão com problema):
+❌ Aceitava apenas 3 vídeos padrão (MOCK_VIDEOS)
+❌ Usuários não conseguiam carregar seus vídeos
+❌ Playlist não funcionava
+❌ Chromecast com problemas
+
+AGORA (versão corrigida v3.0):
+✅ Aceita QUALQUER vídeo do YouTube
+✅ Funciona com links do usuário
+✅ Playlist funciona normalmente
+✅ Chromecast funcionando
+✅ Cache melhorado
+✅ Fallback seguro
+
+═════════════════════════════════════════════════════════════════════════════
+Data: 27 de Abril de 2026
+Versão: 3.0 - Deploy Guide Consolidado
+Status: ✅ PRONTO PARA PRODUÇÃO
+═════════════════════════════════════════════════════════════════════════════
