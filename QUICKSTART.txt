@@ -1,0 +1,217 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                   🚀 INSTRUÇÕES QUICK-START PARA PRODUÇÃO                 ║
+║                      Copy & Paste no seu servidor                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+═════════════════════════════════════════════════════════════════════════════
+⚠️ AVISO IMPORTANTE
+═════════════════════════════════════════════════════════════════════════════
+
+Substitua SEMPRE estes valores:
+  • seu_usuario = seu usuário no servidor (ex: ubuntu, admin, root)
+  • you.andretsc.dev = seu domínio real
+
+═════════════════════════════════════════════════════════════════════════════
+🔴 OPÇÃO 1: TESTE RÁPIDO (para verificar se vai funcionar)
+═════════════════════════════════════════════════════════════════════════════
+
+Execute estes comandos NO SEU SERVIDOR:
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ $ ssh seu_usuario@you.andretsc.dev                                         │
+│ $ cd /var/www/noads                                                        │
+│ $ git pull origin main                                                     │
+│ $ sudo systemctl restart noads                                             │
+│ $ sleep 5                                                                  │
+│ $ curl "http://127.0.0.1:8001/extract.php?url=https://youtu.be/jNQXAC9IVRw"│
+└────────────────────────────────────────────────────────────────────────────┘
+
+✅ SE RETORNAR JSON COM "success": true
+   Seu servidor está ok! Vá para OPÇÃO 2
+
+❌ SE RETORNAR ERRO OU NADA
+   Execute: $ sudo ./diagnostic.sh
+   (se não existir, veja OPÇÃO 3)
+
+═════════════════════════════════════════════════════════════════════════════
+🟢 OPÇÃO 2: RESET COMPLETO (se teste rápido falhou)
+═════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ $ ssh seu_usuario@you.andretsc.dev                                         │
+│ $ cd /var/www/noads                                                        │
+│ $ sudo systemctl stop noads                                                │
+│ $ git fetch origin                                                         │
+│ $ git reset --hard origin/main                                             │
+│ $ rm -rf cache/*                                                           │
+│ $ mkdir -p cache                                                           │
+│ $ sudo chown -R www-data:www-data /var/www/noads                           │
+│ $ sudo chmod -R 755 /var/www/noads                                         │
+│ $ source venv/bin/activate                                                 │
+│ $ pip install --upgrade yt-dlp                                             │
+│ $ sudo systemctl start noads                                               │
+│ $ sleep 5                                                                  │
+│ $ sudo journalctl -u noads -n 20                                           │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Procure na saída por:
+  ✅ "API rodando em http://127.0.0.1:8001" = OK!
+  ❌ Qualquer "Error" ou "Exception" = Problema
+
+═════════════════════════════════════════════════════════════════════════════
+🔵 OPÇÃO 3: DEPLOY COMPLETO (primeira vez ou problema grave)
+═════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ $ ssh seu_usuario@you.andretsc.dev                                         │
+│ $ cd /var/www                                                              │
+│ $ sudo rm -rf noads                                                        │
+│ $ sudo git clone https://github.com/andrebauru/noads.git                   │
+│ $ cd noads                                                                 │
+│ $ sudo python3 -m venv venv                                                │
+│ $ source venv/bin/activate                                                 │
+│ $ pip install yt-dlp flask requests                                        │
+│ $ mkdir -p cache logs                                                      │
+│ $ sudo chown -R www-data:www-data /var/www/noads                           │
+│ $ sudo chmod -R 755 /var/www/noads                                         │
+│ $ sudo cp noads.service /etc/systemd/system/                               │
+│ $ sudo systemctl daemon-reload                                             │
+│ $ sudo systemctl enable noads                                              │
+│ $ sudo systemctl start noads                                               │
+│ $ sleep 5                                                                  │
+│ $ sudo systemctl status noads                                              │
+│ $ sudo journalctl -u noads -n 20                                           │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Procure por "active (running)" na saída do status.
+
+═════════════════════════════════════════════════════════════════════════════
+🟣 OPÇÃO 4: EXECUTAR DIAGNÓSTICO AUTOMÁTICO
+═════════════════════════════════════════════════════════════════════════════
+
+Se não sabe qual opção escolher, execute isto:
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ $ ssh seu_usuario@you.andretsc.dev                                         │
+│ $ cd /var/www/noads                                                        │
+│ $ wget https://raw.githubusercontent.com/andrebauru/noads/main/diagnostic.sh
+│ $ chmod +x diagnostic.sh                                                   │
+│ $ sudo ./diagnostic.sh                                                     │
+└────────────────────────────────────────────────────────────────────────────┘
+
+O script vai mostrar exatamente o que está errado.
+
+═════════════════════════════════════════════════════════════════════════════
+🟠 OPÇÃO 5: VERIFICAÇÃO FINAL (após qualquer opção acima)
+═════════════════════════════════════════════════════════════════════════════
+
+Verifique se tudo está funcionando:
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ # Teste 1: Serviço rodando?                                                │
+│ $ sudo systemctl status noads                                              │
+│ (deve dizer "active (running)")                                            │
+│                                                                            │
+│ # Teste 2: API respondendo?                                                │
+│ $ curl "http://127.0.0.1:8001/extract.php"                                │
+│ (deve retornar JSON)                                                       │
+│                                                                            │
+│ # Teste 3: Com URL real?                                                   │
+│ $ curl "http://127.0.0.1:8001/extract.php?url=https://youtu.be/QUALQUER_ID"│
+│ (deve retornar title e url)                                                │
+│                                                                            │
+│ # Teste 4: NGINX/APACHE proxy?                                             │
+│ $ curl "https://you.andretsc.dev/extract.php"                              │
+│ (se HTTPS está configurado)                                                │
+│                                                                            │
+│ # Teste 5: Em navegador                                                    │
+│ Abrir: https://you.andretsc.dev                                            │
+│ Carregar um vídeo do YouTube                                               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+═════════════════════════════════════════════════════════════════════════════
+⚡ COMANDO MAIS IMPORTANTE (copie e cole isso!)
+═════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ssh seu_usuario@you.andretsc.dev && \                                      │
+│ cd /var/www/noads && \                                                      │
+│ git pull origin main && \                                                   │
+│ sudo systemctl restart noads && \                                           │
+│ sleep 3 && \                                                                │
+│ echo "=== TESTANDO ===" && \                                               │
+│ curl "http://127.0.0.1:8001/extract.php?url=https://youtu.be/jNQXAC9IVRw" │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Se tudo der certo, você verá JSON com sucesso!
+
+═════════════════════════════════════════════════════════════════════════════
+🆘 SE TIVER ERRO
+═════════════════════════════════════════════════════════════════════════════
+
+Erro: "Connection refused"
+Solução: $ sudo systemctl restart noads && sleep 3
+
+Erro: "git not found"
+Solução: $ sudo apt-get install git
+
+Erro: "Python not found"
+Solução: $ sudo apt-get install python3 python3-venv
+
+Erro: "yt-dlp not found"
+Solução: $ source venv/bin/activate && pip install yt-dlp
+
+Erro: "Permission denied"
+Solução: $ sudo chown -R www-data:www-data /var/www/noads
+
+Erro: "Service not found"
+Solução: Ver OPÇÃO 3 (Deploy Completo)
+
+═════════════════════════════════════════════════════════════════════════════
+📞 SE NADA FUNCIONAR
+═════════════════════════════════════════════════════════════════════════════
+
+Execute isto e compartilhe TUDO comigo:
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ $ ssh seu_usuario@you.andretsc.dev                                         │
+│ $ cd /var/www/noads                                                        │
+│ $ chmod +x diagnostic.sh 2>/dev/null || \                                  │
+│   wget https://raw.githubusercontent.com/andrebauru/noads/main/diagnostic.sh
+│ $ sudo ./diagnostic.sh > ~/diagnostico.txt 2>&1                            │
+│ $ cat ~/diagnostico.txt                                                    │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Copie toda a saída e me envie!
+
+═════════════════════════════════════════════════════════════════════════════
+✅ CHECKLIST - MARQUE CONFORME COMPLETAR
+═════════════════════════════════════════════════════════════════════════════
+
+[  ] Conectei ao servidor via SSH
+[  ] Executei git pull origin main
+[  ] Reiniciei o serviço (sudo systemctl restart noads)
+[  ] Esperei 5 segundos
+[  ] Testei API com curl
+[  ] Vi "success": true na resposta
+[  ] Abri https://you.andretsc.dev no navegador
+[  ] Consegui carregar um vídeo
+[  ] Chromecast funcionando
+
+Se tudo tiver ✅, PROBLEMA RESOLVIDO! 🎉
+
+═════════════════════════════════════════════════════════════════════════════
+🎯 RESUMO ULTRA-RÁPIDO
+═════════════════════════════════════════════════════════════════════════════
+
+1. Conecte: ssh seu_usuario@you.andretsc.dev
+2. Atualize: cd /var/www/noads && git pull origin main
+3. Reinicie: sudo systemctl restart noads
+4. Aguarde: sleep 5
+5. Teste: curl "http://127.0.0.1:8001/extract.php?url=..."
+6. Pronto!
+
+═════════════════════════════════════════════════════════════════════════════
+Data: 27 de Abril de 2026
+Versão: 3.0 - Quick Start
+═════════════════════════════════════════════════════════════════════════════
