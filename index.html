@@ -1111,66 +1111,42 @@
             }
         }
 
-        // ✅ DESCOBERTA ATIVA DE DISPOSITIVOS - Loop contínuo
+        // ✅ DESCOBERTA ATIVA - Uma única vez
         function startDeviceDiscovery() {
-            console.log('🔍 Iniciando discovery de dispositivos...');
+            console.log('🔍 Verificando disponibilidade de Chromecast...');
             
             if (deviceDiscoveryTimer) {
                 clearInterval(deviceDiscoveryTimer);
             }
             
-            // Força descoberta imediata
+            // Verifica disponibilidade uma vez
             discoverDevices();
             
-            // Loop a cada 5 segundos
-            deviceDiscoveryTimer = setInterval(discoverDevices, 5000);
+            // Verifica a cada 10 segundos se receptor ainda está disponível
+            deviceDiscoveryTimer = setInterval(discoverDevices, 10000);
         }
 
-        // ✅ DESCOBERTA DE DISPOSITIVOS - Implementação Robusta
+        // ✅ DESCOBERTA DE DISPOSITIVOS - Verificar disponibilidade
+        // NOTA: Chrome Cast API NÃO retorna lista de dispositivos
+        // requestSession() abre um seletor visual nativo - o usuário escolhe
         function discoverDevices() {
-            if (!window.chrome || !window.chrome.cast || !castReceiverAvailable) {
-                console.log('⚠️ Cast não disponível ou receiver não pronto');
+            if (!window.chrome || !window.chrome.cast) {
+                console.log('⚠️ Cast SDK não disponível');
                 return;
             }
             
             try {
-                // ✅ FORMA CORRETA: Usar requestSession com timeout
-                const sessionRequest = new chrome.cast.SessionRequest(
-                    chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-                    [chrome.cast.SESSION_TYPE_SUPPORT_VIDEO_OUT]
-                );
-                
-                // Tenta descobrir e conectar a receptores
-                chrome.cast.requestSession(
-                    (session) => {
-                        console.log('✅ Sessão descoberta:', session.displayName || session.receiver.label);
-                        onSessionEstablished(session);
-                        
-                        // Atualiza lista de dispositivos
-                        if (session.receiver) {
-                            displayDevices([session]);
-                        }
-                    },
-                    (error) => {
-                        // Erro é normal quando não há devices/receptor selecionado
-                        if (error.code !== 'SESSION_ERROR') {
-                            console.log('ℹ️ Discovery timeout ou cancelado (normal)');
-                        } else {
-                            console.log('⚠️ Erro:', error.description);
-                        }
-                        showNoDevices();
-                    },
-                    { 
-                        customDialData: null,
-                        autoJoinPolicy: chrome.cast.AutoJoinPolicy.TAB_AND_ORIGIN_SCOPED
-                    }
-                );
-                
-                console.log('🔍 Discovery iniciado...');
+                // Apenas verificar se receptor está disponível
+                if (castReceiverAvailable) {
+                    console.log('✅ Receptor Chromecast disponível - Pronto para conexão');
+                    displayDevices([{displayName: '🎬 Seu Chromecast', receiver: {}}]);
+                } else {
+                    console.log('ℹ️ Nenhum receptor detectado neste momento');
+                    showNoDevices();
+                }
                 
             } catch(e) {
                 console.error('❌ Erro em discovery:', e);
-                setTimeout(() => startDeviceDiscovery(), 2000);
             }
         }
 
@@ -1212,23 +1188,39 @@
             }
         }
 
-        // ✅ CONEXÃO A DISPOSITIVO
+        // ✅ CONEXÃO A DISPOSITIVO - Abre seletor nativo do Chrome
         function connectToDevice(deviceName) {
-            console.log('🔗 Tentando conectar a:', deviceName);
+            console.log('🔍 Abrindo seletor de Chromecast...');
             
-            const sessionRequest = new chrome.cast.SessionRequest(
-                chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
-            );
-            
-            chrome.cast.requestSession(
-                (session) => {
-                    console.log('✅ Conectado a:', session.displayName);
-                    onSessionEstablished(session);
-                },
-                (error) => {
-                    console.error('❌ Erro na conexão:', error);
-                }
-            );
+            try {
+                const sessionRequest = new chrome.cast.SessionRequest(
+                    chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    [chrome.cast.SESSION_TYPE_SUPPORT_VIDEO_OUT, 
+                     chrome.cast.SESSION_TYPE_SUPPORT_AUDIO_OUT]
+                );
+                
+                // requestSession() abre o seletor nativo do Chrome
+                // O usuário seleciona o Chromecast
+                chrome.cast.requestSession(
+                    (session) => {
+                        console.log('✅ CONECTADO COM SUCESSO a:', session.displayName);
+                        onSessionEstablished(session);
+                    },
+                    (error) => {
+                        if (error.code === 'SESSION_ERROR') {
+                            console.log('ℹ️ Usuário cancelou a seleção');
+                        } else if (error.code === 'CANCEL') {
+                            console.log('ℹ️ Seleção cancelada');
+                        } else {
+                            console.error('❌ Erro:', error.description);
+                        }
+                    }
+                );
+                
+            } catch(e) {
+                console.error('❌ Erro ao abrir seletor:', e);
+                alert('Erro: ' + e.message);
+            }
         }
 
         // ✅ SESSÃO ESTABELECIDA
@@ -1243,10 +1235,18 @@
             }
         }
 
-        // ✅ MOSTRAR LISTA DE DISPOSITIVOS (botão de atualização)
+        // ✅ MOSTRAR SELETOR DE DISPOSITIVOS (botão de transmissão)
         function showCastDevices() {
-            console.log('🔄 Atualizando lista de dispositivos...');
-            discoverDevices();
+            console.log('🔌 Abrindo seletor de Chromecast...');
+            
+            // Mostra aviso se receptor não disponível
+            if (!castReceiverAvailable) {
+                alert('⚠️ Nenhum Chromecast detectado!\n\n✓ Verifique se Chromecast está ligado\n✓ Confirme que está na mesma WiFi\n✓ Aguarde alguns segundos e tente novamente');
+                return;
+            }
+            
+            // Abre o seletor nativo do Chrome
+            connectToDevice('manual');
         }
         
         // ✅ NOVA: Transmitir vídeo para Chromecast
