@@ -227,12 +227,136 @@ def download_video(url, title, format_type='mp4'):
         log(f"Erro download: {e}")
         return {'success': False, 'error': str(e)[:100], 'code': 'DOWNLOAD_ERROR'}
 
+def stream_video(video_url, range_header=None):
+    """
+    ✅ STREAM PROXY: Faz proxy dos bytes do vídeo com suporte a Range requests
+    Retorna: (status_code, headers_dict, bytes_generator)
+    """
+    try:
+        import requests
+        
+        log(f"🎬 Streaming: {video_url[:80]}")
+        
+        # Fazer requisição HEAD para obter Content-Length
+        head_resp = requests.head(video_url, timeout=5, allow_redirects=True)
+        total_size = int(head_resp.headers.get('content-length', 0))
+        
+        if total_size == 0:
+            log("❌ Não foi possível obter tamanho do vídeo")
+            return (500, {}, None)
+        
+        # Processar Range header
+        start = 0
+        end = total_size - 1
+        status_code = 200
+        
+        if range_header:
+            # Parse "bytes=start-end"
+            try:
+                range_val = range_header.replace('bytes=', '')
+                if range_val.startswith('-'):
+                    # "-500" = últimos 500 bytes
+                    end = total_size - 1
+                    start = max(0, total_size - int(range_val[1:]))
+                elif range_val.endswith('-'):
+                    # "500-" = do 500 até o fim
+                    start = int(range_val[:-1])
+                else:
+                    # "500-1000"
+                    parts = range_val.split('-')
+                    start = int(parts[0])
+                    end = int(parts[1])
+                
+                status_code = 206  # Partial Content
+                log(f"📍 Range request: bytes {start}-{end}/{total_size}")
+            except:
+                pass
+        
+        # Headers da resposta
+        headers = {
+            'Content-Type': 'video/mp4',
+            'Content-Length': str(end - start + 1),
+            'Accept-Ranges': 'bytes',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Range, Content-Type',
+            'Cache-Control': 'no-cache',
+        }
+        
+        if status_code == 206:
+            headers['Content-Range'] = f'bytes {start}-{end}/{total_size}'
+        
+        # Fazer requisição GET com Range
+        req_headers = {}
+        if range_header:
+            req_headers['Range'] = f'bytes={start}-{end}'
+        
+        stream_resp = requests.get(video_url, headers=req_headers, timeout=30, stream=True)
+        
+        def chunk_generator():
+            try:
+                for chunk in stream_resp.iter_content(chunk_size=8192):
+                    if chunk:
+                        yield chunk
+            except:
+                log("❌ Erro durante streaming")
+            finally:
+                stream_resp.close()
+        
+        return (status_code, headers, chunk_generator())
+        
+    except ImportError:
+        log("❌ Biblioteca 'requests' não instalada")
+        return (500, {}, None)
+    except Exception as e:
+        log(f"❌ Erro no stream: {e}")
+        return (500, {}, None)
+
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests"""
         parsed_path = urlparse(self.path)
         
-        # CORS Headers
+        # ✅ ROTA: /stream - Proxy de streaming com suporte a Range requests
+        if parsed_path.path == '/stream':
+            query = parse_qs(parsed_path.query)
+            video_url = unquote(query.get('video_url', [''])[0])
+            
+            if not video_url:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': 'video_url não fornecida'}).encode())
+                return
+            
+            range_header = self.headers.get('Range')
+            status_code, headers, chunk_gen = stream_video(video_url, range_header)
+            
+            if status_code != 200 and status_code != 206:
+                self.send_response(status_code)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': 'Erro ao fazer stream'}).encode())
+                return
+            
+            # Enviar headers da resposta
+            self.send_response(status_code)
+            for key, value in headers.items():
+                self.send_header(key, value)
+            self.end_headers()
+            
+            # Enviar chunks
+            if chunk_gen:
+                try:
+                    for chunk in chunk_gen:
+                        self.wfile.write(chunk)
+                except:
+                    log("❌ Conexão quebrada durante stream")
+            return
+        
+        # CORS Headers para outras rotas
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')

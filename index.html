@@ -1547,7 +1547,7 @@
             player.pause();
             player.innerHTML = '';
             const source = document.createElement('source');
-            source.src = currentVideoUrl;
+            source.src = `${API_BASE_URL()}/stream?video_url=${encodeURIComponent(currentVideoUrl)}`;
             source.type = 'video/mp4';
             player.appendChild(source);
 
@@ -1641,7 +1641,7 @@
                     player.innerHTML = '';
 
                     const source = document.createElement('source');
-                    source.src = currentVideoUrl;
+                    source.src = `${API_BASE_URL()}/stream?video_url=${encodeURIComponent(currentVideoUrl)}`;
                     source.type = 'video/mp4';
                     player.appendChild(source);
 
